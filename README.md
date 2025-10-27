@@ -10,7 +10,7 @@
 
 ## Project Structure
 
-- **`/`**: The source code of your main project
+- **`/rent-a-car-app`**: The source code of your main project
 - **`/assignments`**: Results of your semester assignments
 - **`/docs`**: If using GitHub for documentation (e.g., your final report in Markdown format)
 
