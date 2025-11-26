@@ -27,6 +27,7 @@
 - Link to Assignment 1: [**Assignment 1**](https://github.com/Klepo313/HCI_25-26/tree/main/assignments/assignment_1) <!-- Replace with actual URL -->
 - Link to Assignment 2: [**Assignment 2**](https://github.com/Klepo313/HCI_25-26/blob/main/assignments/assignment_2/User%20personas%20and%20information%20architecture.pdf) <!-- Replace with actual URL -->
 - Link to Assignment 3: [**Assignment 3**](https://rent-a-car-inky.vercel.app/) <!-- Replace with actual URL -->
+- Link to Assignment 4: [**Assignment 3**](https://github.com/Klepo313/HCI_25-26/tree/main/assignments/assignment_4)
 <!-- Add more assignments as necessary -->
 
 ## Project Requirements
