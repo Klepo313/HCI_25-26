@@ -1,7 +1,17 @@
+import DealsHero from "./components/DealsHero";
+import WhyChooseUs from "./components/WhyChooseUs";
+import VehiclesSection from "./components/VehiclesSection";
+import PricingSection from "./components/PricingSection";
+import SiteFooter from "./components/SiteFooter";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center p-10">
-      <h1 className="text-6xl font-extrabold tracking-tight">Home page</h1>
+    <main className="flex min-h-screen flex-col">
+      <DealsHero />
+      <WhyChooseUs />
+      <VehiclesSection />
+      <PricingSection />
+      <SiteFooter />
     </main>
   );
 }

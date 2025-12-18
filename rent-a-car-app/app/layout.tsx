@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "./globals.scss";
 import { Navigation } from "./components/navigation";
+import { ThemeProvider } from "./components/ThemeProvider";
+import ScrollToTop from "./components/ScrollToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,15 +27,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <header className="fixed top-0 left-0 right-0 z-50 border-b">
-          <div className="container mx-auto py-4 flex justify-center">
-            <Navigation />
-          </div>
-        </header>
-        <main className="pt-20">{children}</main>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider>
+          <Navigation />
+          <main style={{ paddingTop: "72px" }}>{children}</main>
+          <ScrollToTop />
+        </ThemeProvider>
       </body>
     </html>
   );
