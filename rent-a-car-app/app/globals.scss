@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "./styles/variables";
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: $font-sans;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Scrollbar styling (webkit only) */
+*::-webkit-scrollbar { width: 10px; }
+*::-webkit-scrollbar-track { background: var(--color-bg-subtle); }
+*::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: var(--radius-md); }
+
+.glass-surface {
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border: 1px solid var(--glass-border);
+}
+
+.fade-border {
+  border: 1px solid var(--color-border);
+}
+
+.text-muted { color: var(--color-fg-muted); }
+
+/* Utility for gradient brand text */
+.brand-gradient {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Theme transitions */
+html.theme-light, html.theme-dark {
+  transition: background-color var(--transition-medium) ease, color var(--transition-medium) ease;
+}
