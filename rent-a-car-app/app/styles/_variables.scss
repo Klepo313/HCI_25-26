@@ -1,0 +1,71 @@
+$primary: #6366f1;
+$primary-accent: #4f46e5;
+$secondary: #10b981;
+$secondary-accent: #059669;
+$danger: #ef4444;
+$warning: #f59e0b;
+$info: #0ea5e9;
+$radius-sm: 4px;
+$radius-md: 12px;
+$radius-lg: 20px;
+$gradient-hero-start: rgba(99, 102, 241, 0.25);
+$gradient-hero-end: rgba(16, 185, 129, 0.18);
+
+// Font stacks (can be extended later)
+$font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+$font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+// CSS variable export using light/dark scopes
+:root {
+  --transition-fast: 150ms;
+  --transition-medium: 300ms;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-lg: 0 18px 40px rgba(0,0,0,0.12);
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+}
+
+.theme-light {
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f5f7fa;
+  --color-bg-elevated: #ffffff;
+  --color-fg: #18181b;
+  --color-fg-muted: #4b5563;
+  --color-border: #e5e7eb;
+  --color-primary: #{$primary};
+  --color-primary-accent: #{$primary-accent};
+  --color-secondary: #{$secondary};
+  --color-secondary-accent: #{$secondary-accent};
+  --color-danger: #{$danger};
+  --color-warning: #{$warning};
+  --color-info: #{$info};
+  --glass-bg: rgba(255,255,255,0.65);
+  --glass-border: rgba(255,255,255,0.4);
+}
+
+.theme-dark {
+  --color-bg: #0f1115;
+  --color-bg-subtle: #161a20;
+  --color-bg-elevated: #1f242b;
+  --color-fg: #f1f5f9;
+  --color-fg-muted: #94a3b8;
+  --color-border: #2c333b;
+  --color-primary: #{$primary};
+  --color-primary-accent: #{$primary-accent};
+  --color-secondary: #{$secondary};
+  --color-secondary-accent: #{$secondary-accent};
+  --color-danger: #{$danger};
+  --color-warning: #{$warning};
+  --color-info: #{$info};
+  --glass-bg: rgba(20,24,30,0.55);
+  --glass-border: rgba(255,255,255,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light) {
+    /* If user hasn't explicitly chosen light, prefer dark system */
+    color-scheme: dark;
+  }
+}
