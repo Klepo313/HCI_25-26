@@ -102,8 +102,7 @@ export default async function Page({
           Vehicle List
         </h1>
         <p className="text-base text-muted md:text-lg">
-          Fake cars powered by myfakeapi.com. Paginate through sample vehicles
-          to test your flows.
+          Fake cars powered by myfakeapi.com. Filter and explore our full vehicle inventory.
         </p>
       </header>
 

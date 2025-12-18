@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import VehicleCard, { Vehicle } from "./VehicleCard";
 
 const demoVehicles: Vehicle[] = [
@@ -10,13 +8,10 @@ const demoVehicles: Vehicle[] = [
   { id: "4", name: "BMW 3 Series", image: "/demo/bmw3.svg", pricePerDay: 75, seats: 5, transmission: "Automatic" },
   { id: "5", name: "Audi A3", image: "/demo/a3.svg", pricePerDay: 68, seats: 5, transmission: "Automatic" },
   { id: "6", name: "Peugeot 208", image: "/demo/208.svg", pricePerDay: 33, seats: 5, transmission: "Manual" },
-  { id: "7", name: "Renault Clio", image: "/demo/clio.svg", pricePerDay: 31, seats: 5, transmission: "Manual" },
-  { id: "8", name: "Dacia Duster", image: "/demo/duster.svg", pricePerDay: 39, seats: 5, transmission: "Manual" },
 ];
 
 export default function VehiclesSection() {
-  const [showAll, setShowAll] = useState(false);
-  const vehicles = showAll ? demoVehicles : demoVehicles.slice(0, 6);
+  const vehicles = demoVehicles;
 
   return (
     <section className="py-16">
@@ -35,18 +30,18 @@ export default function VehiclesSection() {
         </div>
 
         <div className="mt-8 text-center">
-          <button
-            onClick={() => setShowAll((s) => !s)}
+          <Link
+            href="/vehicle-list"
             className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-semibold"
             style={{
-              background: "var(--color-bg-elevated)",
-              color: "var(--color-fg)",
-              borderColor: "var(--color-border)",
-              transition: "background 0.2s, color 0.2s, border-color 0.2s"
+              background: "var(--color-primary)",
+              color: "#fff",
+              borderColor: "var(--color-primary)",
+              transition: "background 0.2s, opacity 0.2s"
             }}
           >
-            {showAll ? "Show Less" : "Show More"}
-          </button>
+            View All Vehicles
+          </Link>
         </div>
       </div>
     </section>
