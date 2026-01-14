@@ -25,9 +25,7 @@ export default function VehiclesSection() {
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((v) => (
-            <Link key={v.id} href={`/vehicle-list/${v.id}`}>
-              <VehicleCard vehicle={v} />
-            </Link>
+            <VehicleCard key={v.id} vehicle={v} />
           ))}
         </div>
 
