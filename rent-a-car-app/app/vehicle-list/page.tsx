@@ -50,7 +50,16 @@ function mapCar(car: CarApi) {
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: Promise<{ page?: string; fuel?: string; doors?: string; make?: string; model?: string; color?: string; year?: string; availability?: string }>;
+  searchParams?: Promise<{
+    page?: string;
+    fuel?: string;
+    doors?: string;
+    make?: string;
+    model?: string;
+    color?: string;
+    year?: string;
+    availability?: string;
+  }>;
 }) {
   const resolvedParams = (await searchParams) ?? {};
   const page = Math.max(1, Number(resolvedParams.page ?? "1") || 1);
@@ -67,20 +76,26 @@ export default async function Page({
 
   // Build filter options from full dataset
   const fuelOptions = Array.from(new Set(cars.map((c) => c.fuel)));
-  const doorOptions = Array.from(new Set(cars.map((c) => c.doors))).sort((a, b) => a - b);
+  const doorOptions = Array.from(new Set(cars.map((c) => c.doors))).sort(
+    (a, b) => a - b
+  );
   const makeOptions = Array.from(new Set(cars.map((c) => c.make))).sort();
   const modelOptions = Array.from(new Set(cars.map((c) => c.name))).sort();
   const colorOptions = Array.from(new Set(cars.map((c) => c.color))).sort();
-  const yearOptions = Array.from(new Set(cars.map((c) => c.year))).sort((a, b) => a - b);
+  const yearOptions = Array.from(new Set(cars.map((c) => c.year))).sort(
+    (a, b) => a - b
+  );
 
   // Apply filters
   const filtered = cars.filter((c) => {
     if (resolvedParams.fuel && c.fuel !== resolvedParams.fuel) return false;
-    if (resolvedParams.doors && Number(resolvedParams.doors) !== c.doors) return false;
+    if (resolvedParams.doors && Number(resolvedParams.doors) !== c.doors)
+      return false;
     if (resolvedParams.make && c.make !== resolvedParams.make) return false;
     if (resolvedParams.model && c.name !== resolvedParams.model) return false;
     if (resolvedParams.color && c.color !== resolvedParams.color) return false;
-    if (resolvedParams.year && Number(resolvedParams.year) !== c.year) return false;
+    if (resolvedParams.year && Number(resolvedParams.year) !== c.year)
+      return false;
     if (resolvedParams.availability) {
       const wantAvailable = resolvedParams.availability === "true";
       if (c.availability !== wantAvailable) return false;
@@ -102,7 +117,8 @@ export default async function Page({
           Vehicle List
         </h1>
         <p className="text-base text-muted md:text-lg">
-          Fake cars powered by myfakeapi.com. Filter and explore our full vehicle inventory.
+          Fake cars powered by myfakeapi.com. Filter and explore our full
+          vehicle inventory.
         </p>
       </header>
 
@@ -123,9 +139,15 @@ export default async function Page({
       ) : (
         <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {pagedCars.map((car) => (
-            <article
+            <Link
               key={car.id}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              href={`/vehicle-list/${car.id}`}
+              className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                cursor: "pointer",
+              }}
             >
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-[var(--color-fg)]">
@@ -183,7 +205,7 @@ export default async function Page({
                   {car.availability ? "Available" : "Unavailable"}
                 </span>
               </div>
-            </article>
+            </Link>
           ))}
         </section>
       )}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./VehicleCard.module.scss";
 
 export type Vehicle = {
@@ -15,13 +16,15 @@ type Props = {
 
 export default function VehicleCard({ vehicle }: Props) {
   return (
-    <div
-      className={`${styles.card} rounded-xl border shadow-sm overflow-hidden`}
+    <Link
+      href={`/vehicle-list/${vehicle.id}`}
+      className={`${styles.card} rounded-xl border shadow-sm overflow-hidden block`}
       style={{
         background: "var(--color-bg-elevated)",
         borderColor: "var(--color-border)",
         color: "var(--color-fg)",
-        transition: "background 0.2s, color 0.2s, border-color 0.2s"
+        transition: "background 0.2s, color 0.2s, border-color 0.2s",
+        textDecoration: "none"
       }}
     >
       <div className="relative">
@@ -47,6 +50,6 @@ export default function VehicleCard({ vehicle }: Props) {
           {vehicle.seats} seats · {vehicle.transmission}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
