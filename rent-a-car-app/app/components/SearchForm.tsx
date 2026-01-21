@@ -29,14 +29,14 @@ const searchFormSchema = z
       if (!data.dropoffDate || !data.dropoffTime) return true;
       const now = new Date();
       const dropoffDateTime = new Date(
-        `${data.dropoffDate}T${data.dropoffTime}`
+        `${data.dropoffDate}T${data.dropoffTime}`,
       );
       return dropoffDateTime > now;
     },
     {
       message: "Drop off date and time cannot be in the past",
       path: ["dropoffTime"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -54,7 +54,7 @@ const searchFormSchema = z
     {
       message: "Drop off must be after pick up",
       path: ["dropoffDate"],
-    }
+    },
   );
 
 interface SearchFormProps {
@@ -82,7 +82,7 @@ export default function SearchForm({
   >({});
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) {
     const { name, value } = e.target;
     if (name === "pickupLocation") {
@@ -136,7 +136,7 @@ export default function SearchForm({
       onSubmit={handleSubmit}
       className={`${showGlassEffect ? styles.glass : ""} mt-8 p-5 sm:p-6 grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3`}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col justify-between">
         <label className={`${styles.fieldLabel} mb-2 flex items-center gap-2`}>
           <MapPin size={18} /> Pick Up Location
         </label>
@@ -146,12 +146,12 @@ export default function SearchForm({
           value={form.pickupLocation}
           onChange={handleChange}
           placeholder="City, Airport, Station..."
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.pickupLocation ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
+            color: form.pickupLocation ? "var(--color-fg)" : "var(--color-fg-muted)",
             borderColor: errors.pickupLocation
               ? "#ef4444"
               : "var(--color-border)",
@@ -164,7 +164,9 @@ export default function SearchForm({
             {errors.pickupLocation}
           </span>
         )}
-        <label className={`${styles.fieldLabel} mt-3 mb-2 flex items-center gap-2`}>
+        <label
+          className={`${styles.fieldLabel} mt-3 mb-2 flex items-center gap-2`}
+        >
           <MapPin size={18} /> Return Location
         </label>
         <input
@@ -173,12 +175,12 @@ export default function SearchForm({
           value={form.returnLocation}
           onChange={handleChange}
           placeholder="City, Airport, Station..."
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.returnLocation ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
+            color: form.returnLocation ? "var(--color-fg)" : "var(--color-fg-muted)",
             borderColor: errors.returnLocation
               ? "#ef4444"
               : "var(--color-border)",
@@ -193,7 +195,7 @@ export default function SearchForm({
         )}
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col justify-between">
         <label className={`${styles.fieldLabel} mb-2 flex items-center gap-2`}>
           <Calendar size={18} /> Pick Up Date
         </label>
@@ -202,15 +204,13 @@ export default function SearchForm({
           name="pickupDate"
           value={form.pickupDate}
           onChange={handleChange}
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.pickupDate ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
-            borderColor: errors.pickupDate
-              ? "#ef4444"
-              : "var(--color-border)",
+            color: form.pickupDate ? "var(--color-fg)" : "var(--color-fg-muted)",
+            borderColor: errors.pickupDate ? "#ef4444" : "var(--color-border)",
             transition: "background 0.2s, color 0.2s, border-color 0.2s",
           }}
           aria-label="Pick up date"
@@ -218,27 +218,31 @@ export default function SearchForm({
         {errors.pickupDate && (
           <span className="text-red-500 text-xs mt-1">{errors.pickupDate}</span>
         )}
-        <label className={`${styles.fieldLabel} mt-2 mb-2 flex items-center gap-2`}>
+        <label
+          className={`${styles.fieldLabel} mt-2 mb-2 flex items-center gap-2`}
+        >
           <Clock size={18} /> Pick Up Time
         </label>
         <select
           name="pickupTime"
           value={form.pickupTime}
           onChange={handleChange}
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.pickupTime ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
-            borderColor: errors.pickupTime
-              ? "#ef4444"
-              : "var(--color-border)",
+            color: form.pickupTime
+              ? "var(--color-fg)"
+              : "var(--color-fg-muted)",
+            borderColor: errors.pickupTime ? "#ef4444" : "var(--color-border)",
             transition: "background 0.2s, color 0.2s, border-color 0.2s",
           }}
           aria-label="Pick up time"
         >
-          <option value="">Select time</option>
+          <option value="" className="opacity-25">
+            Select time
+          </option>
           {Array.from({ length: 24 * 2 }, (_, i) => {
             const hour = Math.floor(i / 2)
               .toString()
@@ -257,7 +261,7 @@ export default function SearchForm({
         )}
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col justify-between">
         <label className={`${styles.fieldLabel} mb-2 flex items-center gap-2`}>
           <Calendar size={18} /> Drop Off Date
         </label>
@@ -266,43 +270,47 @@ export default function SearchForm({
           name="dropoffDate"
           value={form.dropoffDate}
           onChange={handleChange}
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.dropoffDate ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
-            borderColor: errors.dropoffDate
-              ? "#ef4444"
-              : "var(--color-border)",
+            color: form.dropoffDate ? "var(--color-fg)" : "var(--color-fg-muted)",
+            borderColor: errors.dropoffDate ? "#ef4444" : "var(--color-border)",
             transition: "background 0.2s, color 0.2s, border-color 0.2s",
           }}
           aria-label="Drop off date"
         />
         {errors.dropoffDate && (
-          <span className="text-red-500 text-xs mt-1">{errors.dropoffDate}</span>
+          <span className="text-red-500 text-xs mt-1">
+            {errors.dropoffDate}
+          </span>
         )}
-        <label className={`${styles.fieldLabel} mt-2 mb-2 flex items-center gap-2`}>
+        <label
+          className={`${styles.fieldLabel} mt-2 mb-2 flex items-center gap-2`}
+        >
           <Clock size={18} /> Drop Off Time
         </label>
         <select
           name="dropoffTime"
           value={form.dropoffTime}
           onChange={handleChange}
-          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+          className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${styles.fieldControl} ${
             errors.dropoffTime ? "border-red-500" : ""
           }`}
           style={{
             background: "var(--color-bg-elevated)",
-            color: "var(--color-fg)",
-            borderColor: errors.dropoffTime
-              ? "#ef4444"
-              : "var(--color-border)",
+            color: form.dropoffTime
+              ? "var(--color-fg)"
+              : "var(--color-fg-muted)",
+            borderColor: errors.dropoffTime ? "#ef4444" : "var(--color-border)",
             transition: "background 0.2s, color 0.2s, border-color 0.2s",
           }}
           aria-label="Drop off time"
         >
-          <option value="">Select time</option>
+          <option value="" className="opacity-25">
+            Select time
+          </option>
           {Array.from({ length: 24 * 2 }, (_, i) => {
             const hour = Math.floor(i / 2)
               .toString()
@@ -317,7 +325,9 @@ export default function SearchForm({
           })}
         </select>
         {errors.dropoffTime && (
-          <span className="text-red-500 text-xs mt-1">{errors.dropoffTime}</span>
+          <span className="text-red-500 text-xs mt-1">
+            {errors.dropoffTime}
+          </span>
         )}
       </div>
 
