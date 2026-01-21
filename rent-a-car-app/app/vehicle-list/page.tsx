@@ -153,7 +153,7 @@ export default async function Page({
   };
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 px-4 py-10 md:px-10">
+    <main className="flex min-h-screen flex-col gap-8 px-4 py-10 md:px-10 max-w-7xl mx-auto">
       <header className="flex flex-col gap-3 text-center">
         <p className="text-sm uppercase tracking-[0.2em] text-muted">Explore</p>
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
