@@ -249,7 +249,7 @@ export default function SearchAndFilterForm({
                 Availability
                 <select
                   name="availability"
-                  defaultValue={params.availability ?? ""}
+                  defaultValue={params.availability ?? "true"}
                   className={styles.filterSelect}
                 >
                   <option value="">All</option>
