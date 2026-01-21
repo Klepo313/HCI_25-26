@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Fuel, DoorClosed, Users, Calendar, Palette } from "lucide-react";
+import CarImage from "@/app/components/CarImage";
+import { formatPrice } from "@/app/utils/formatPrice";
 
 type CarApi = {
   id: number;
@@ -51,11 +53,18 @@ async function fetchCarById(id: string) {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<Record<string, string>>;
 }) {
   const resolvedParams = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
   const car = await fetchCarById(resolvedParams.id);
+
+  // Build back link with preserved query params
+  const backParams = new URLSearchParams(resolvedSearchParams);
+  const backLink = `/vehicle-list${backParams.toString() ? `?${backParams.toString()}` : ''}`;
 
   if (!car) {
     return (
@@ -63,7 +72,7 @@ export default async function Page({
         <h1 className="text-4xl font-extrabold tracking-tight">Vehicle Not Found</h1>
         <p className="text-muted">The vehicle you're looking for doesn't exist.</p>
         <Link
-          href="/vehicle-list"
+          href={backLink}
           className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
         >
           <ArrowLeft size={16} />
@@ -77,7 +86,7 @@ export default async function Page({
     <main className="flex min-h-screen flex-col gap-8 px-4 py-10 md:px-10">
       <div className="mx-auto w-full max-w-4xl">
         <Link
-          href="/vehicle-list"
+          href={backLink}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-primary)] transition hover:underline"
         >
           <ArrowLeft size={16} />
@@ -86,7 +95,17 @@ export default async function Page({
       </div>
 
       <section className="mx-auto w-full max-w-4xl">
-        <div className="flex flex-col gap-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-8 shadow-lg">
+        <div className="flex flex-col gap-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] overflow-hidden shadow-lg">
+          {/* Car Image */}
+          <div className="relative h-80 w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+            <CarImage
+              imageUrl={`https://loremflickr.com/800/400/car,${car.name.toLowerCase()}/all?lock=${car.id}`}
+              carMake={car.make}
+              carName={car.name}
+            />
+          </div>
+
+          <div className="px-8 pb-8 flex flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-4xl font-extrabold tracking-tight text-[var(--color-fg)]">
@@ -98,7 +117,7 @@ export default async function Page({
             </div>
             <div className="text-right">
               <div className="text-4xl font-bold text-[var(--color-primary)]">
-                ${car.price}
+                ${formatPrice(car.price)}
               </div>
               <div className="text-sm text-[var(--color-fg-muted)]">per day</div>
             </div>
@@ -198,11 +217,12 @@ export default async function Page({
               {car.availability ? "Book Now" : "Unavailable"}
             </button>
             <Link
-              href="/vehicle-list"
+              href={backLink}
               className="flex-1 rounded-lg border border-[var(--color-border)] px-6 py-3 text-center text-base font-semibold text-[var(--color-fg)] transition hover:bg-[var(--color-bg-elevated)]"
             >
               View More Vehicles
             </Link>
+          </div>
           </div>
         </div>
       </section>

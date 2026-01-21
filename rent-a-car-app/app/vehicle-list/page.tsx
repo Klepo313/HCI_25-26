@@ -1,5 +1,7 @@
 import Link from "next/link";
 import SearchAndFilterForm from "@/app/components/SearchAndFilterForm";
+import CarImage from "@/app/components/CarImage";
+import { formatPrice } from "@/app/utils/formatPrice";
 
 type CarApi = {
   id: number;
@@ -70,6 +72,8 @@ export default async function Page({
   }>;
 }) {
   const resolvedParams = (await searchParams) ?? {};
+  // Default to showing only available vehicles
+  const availability = resolvedParams.availability ?? "true";
   const page = Math.max(1, Number(resolvedParams.page ?? "1") || 1);
 
   let cars: Array<ReturnType<typeof mapCar>> = [];
@@ -104,8 +108,8 @@ export default async function Page({
     if (resolvedParams.color && c.color !== resolvedParams.color) return false;
     if (resolvedParams.year && Number(resolvedParams.year) !== c.year)
       return false;
-    if (resolvedParams.availability) {
-      const wantAvailable = resolvedParams.availability === "true";
+    if (availability) {
+      const wantAvailable = availability === "true";
       if (c.availability !== wantAvailable) return false;
     }
     if (resolvedParams.minPrice && c.price < Number(resolvedParams.minPrice))
@@ -143,8 +147,7 @@ export default async function Page({
     if (resolvedParams.model) params.set("model", resolvedParams.model);
     if (resolvedParams.color) params.set("color", resolvedParams.color);
     if (resolvedParams.year) params.set("year", resolvedParams.year);
-    if (resolvedParams.availability)
-      params.set("availability", resolvedParams.availability);
+    if (availability) params.set("availability", availability);
     if (resolvedParams.minPrice)
       params.set("minPrice", resolvedParams.minPrice);
     if (resolvedParams.maxPrice)
@@ -191,12 +194,11 @@ export default async function Page({
                 className="group flex flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-sm transition hover:shadow-lg"
               >
                 {/* Car Image */}
-                <div className="relative h-48 overflow-hidden bg-gray-200">
-                  <img
-                    src={imageUrl}
-                    alt={`${car.make} ${car.name}`}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
+                <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                  <CarImage
+                    imageUrl={imageUrl}
+                    carMake={car.make}
+                    carName={car.name}
                   />
                   <div className="absolute top-3 right-3">
                     <span
@@ -289,23 +291,23 @@ export default async function Page({
                   </div>
 
                   {/* Price and Action */}
-                  <div className="mt-auto flex items-end justify-between gap-4">
-                    <div>
+                  <div className="mt-auto flex items-end justify-between gap-3">
+                    <div className="flex-shrink min-w-0">
                       <p className="text-sm text-[var(--color-fg-muted)]">
                         From
                       </p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-[var(--color-primary)]">
-                          ${car.price}
+                        <span className="text-2xl font-bold text-[var(--color-primary)]">
+                          ${formatPrice(car.price)}
                         </span>
-                        <span className="text-sm text-[var(--color-fg-muted)]">
+                        <span className="text-xs text-[var(--color-fg-muted)]">
                           /day
                         </span>
                       </div>
                     </div>
                     <Link
-                      href={`/vehicle-list/${car.id}`}
-                      className="rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
+                      href={`/vehicle-list/${car.id}?${buildQueryString(currentPage)}`}
+                      className="rounded-lg bg-[var(--color-primary)] text-center px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95 whitespace-nowrap flex-shrink-0"
                     >
                       Select Vehicle
                     </Link>
