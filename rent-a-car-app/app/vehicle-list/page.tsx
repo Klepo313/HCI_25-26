@@ -65,6 +65,8 @@ export default async function Page({
     color?: string;
     year?: string;
     availability?: string;
+    minPrice?: string;
+    maxPrice?: string;
   }>;
 }) {
   const resolvedParams = (await searchParams) ?? {};
@@ -83,13 +85,13 @@ export default async function Page({
   // Build filter options from full dataset
   const fuelOptions = Array.from(new Set(cars.map((c) => c.fuel)));
   const doorOptions = Array.from(new Set(cars.map((c) => c.doors))).sort(
-    (a, b) => a - b
+    (a, b) => a - b,
   );
   const makeOptions = Array.from(new Set(cars.map((c) => c.make))).sort();
   const modelOptions = Array.from(new Set(cars.map((c) => c.name))).sort();
   const colorOptions = Array.from(new Set(cars.map((c) => c.color))).sort();
   const yearOptions = Array.from(new Set(cars.map((c) => c.year))).sort(
-    (a, b) => a - b
+    (a, b) => a - b,
   );
 
   // Apply filters
@@ -106,6 +108,10 @@ export default async function Page({
       const wantAvailable = resolvedParams.availability === "true";
       if (c.availability !== wantAvailable) return false;
     }
+    if (resolvedParams.minPrice && c.price < Number(resolvedParams.minPrice))
+      return false;
+    if (resolvedParams.maxPrice && c.price > Number(resolvedParams.maxPrice))
+      return false;
     return true;
   });
 
@@ -119,19 +125,30 @@ export default async function Page({
   const buildQueryString = (newPage: number) => {
     const params = new URLSearchParams();
     params.set("page", String(newPage));
-    if (resolvedParams.pickupLocation) params.set("pickupLocation", resolvedParams.pickupLocation);
-    if (resolvedParams.returnLocation) params.set("returnLocation", resolvedParams.returnLocation);
-    if (resolvedParams.pickupDate) params.set("pickupDate", resolvedParams.pickupDate);
-    if (resolvedParams.pickupTime) params.set("pickupTime", resolvedParams.pickupTime);
-    if (resolvedParams.dropoffDate) params.set("dropoffDate", resolvedParams.dropoffDate);
-    if (resolvedParams.dropoffTime) params.set("dropoffTime", resolvedParams.dropoffTime);
+    if (resolvedParams.pickupLocation)
+      params.set("pickupLocation", resolvedParams.pickupLocation);
+    if (resolvedParams.returnLocation)
+      params.set("returnLocation", resolvedParams.returnLocation);
+    if (resolvedParams.pickupDate)
+      params.set("pickupDate", resolvedParams.pickupDate);
+    if (resolvedParams.pickupTime)
+      params.set("pickupTime", resolvedParams.pickupTime);
+    if (resolvedParams.dropoffDate)
+      params.set("dropoffDate", resolvedParams.dropoffDate);
+    if (resolvedParams.dropoffTime)
+      params.set("dropoffTime", resolvedParams.dropoffTime);
     if (resolvedParams.fuel) params.set("fuel", resolvedParams.fuel);
     if (resolvedParams.doors) params.set("doors", resolvedParams.doors);
     if (resolvedParams.make) params.set("make", resolvedParams.make);
     if (resolvedParams.model) params.set("model", resolvedParams.model);
     if (resolvedParams.color) params.set("color", resolvedParams.color);
     if (resolvedParams.year) params.set("year", resolvedParams.year);
-    if (resolvedParams.availability) params.set("availability", resolvedParams.availability);
+    if (resolvedParams.availability)
+      params.set("availability", resolvedParams.availability);
+    if (resolvedParams.minPrice)
+      params.set("minPrice", resolvedParams.minPrice);
+    if (resolvedParams.maxPrice)
+      params.set("maxPrice", resolvedParams.maxPrice);
     return params.toString();
   };
 
@@ -164,75 +181,139 @@ export default async function Page({
         </div>
       ) : (
         <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {pagedCars.map((car) => (
-            <Link
-              key={car.id}
-              href={`/vehicle-list/${car.id}`}
-              className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                cursor: "pointer",
-              }}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-[var(--color-fg)]">
-                  {car.name}
-                </h2>
-                <span className="rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
-                  ${car.price}/day
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-[var(--color-fg-muted)]">
-                {car.description}
-              </p>
-              <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-[var(--color-fg-muted)]">
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">Fuel</dt>
-                  <dd>{car.fuel}</dd>
+          {pagedCars.map((car) => {
+            // Generate a consistent image based on car ID
+            const imageUrl = `https://loremflickr.com/400/300/car,${car.name.toLowerCase()}/all?lock=${car.id}`;
+
+            return (
+              <article
+                key={car.id}
+                className="group flex flex-col overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] shadow-sm transition hover:shadow-lg"
+              >
+                {/* Car Image */}
+                <div className="relative h-48 overflow-hidden bg-gray-200">
+                  <img
+                    src={imageUrl}
+                    alt={`${car.make} ${car.name}`}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-3 right-3">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold shadow-md ${
+                        car.availability
+                          ? "bg-green-500 text-white"
+                          : "bg-amber-500 text-white"
+                      }`}
+                    >
+                      {car.availability ? "Available" : "Unavailable"}
+                    </span>
+                  </div>
                 </div>
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">
-                    Doors
-                  </dt>
-                  <dd>{car.doors}</dd>
+
+                {/* Card Content */}
+                <div className="flex flex-1 flex-col p-5">
+                  {/* Header */}
+                  <div className="mb-3">
+                    <h2 className="text-xl font-bold text-[var(--color-fg)]">
+                      {car.make} {car.name}
+                    </h2>
+                    <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+                      {car.year} • {car.color}
+                    </p>
+                  </div>
+
+                  {/* Specifications */}
+                  <div className="mb-4 flex flex-wrap gap-3 text-sm text-[var(--color-fg-muted)]">
+                    <div className="flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
+                      <span>{car.fuel}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <rect
+                          x="3"
+                          y="11"
+                          width="18"
+                          height="11"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      <span>{car.doors} Doors</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                      <span>{car.seats} Seats</span>
+                    </div>
+                  </div>
+
+                  {/* Price and Action */}
+                  <div className="mt-auto flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-[var(--color-fg-muted)]">
+                        From
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-[var(--color-primary)]">
+                          ${car.price}
+                        </span>
+                        <span className="text-sm text-[var(--color-fg-muted)]">
+                          /day
+                        </span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/vehicle-list/${car.id}`}
+                      className="rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95"
+                    >
+                      Select Vehicle
+                    </Link>
+                  </div>
                 </div>
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">
-                    Seats
-                  </dt>
-                  <dd>{car.seats}</dd>
-                </div>
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">
-                    Color
-                  </dt>
-                  <dd>{car.color}</dd>
-                </div>
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">Year</dt>
-                  <dd>{car.year}</dd>
-                </div>
-                <div className="rounded-lg border border-[var(--color-border)] px-3 py-2">
-                  <dt className="font-semibold text-[var(--color-fg)]">VIN</dt>
-                  <dd className="truncate" title={car.vin}>
-                    {car.vin}
-                  </dd>
-                </div>
-              </dl>
-              <div className="mt-3 text-xs font-semibold uppercase tracking-wide">
-                <span
-                  className={`rounded-full px-2 py-1 ${
-                    car.availability
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {car.availability ? "Available" : "Unavailable"}
-                </span>
-              </div>
-            </Link>
-          ))}
+              </article>
+            );
+          })}
         </section>
       )}
 

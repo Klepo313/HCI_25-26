@@ -27,6 +27,8 @@ interface SearchAndFilterFormProps {
     color?: string;
     year?: string;
     availability?: string;
+    minPrice?: string;
+    maxPrice?: string;
   };
 }
 
@@ -57,6 +59,8 @@ export default function SearchAndFilterForm({
       ...(params.color && { color: params.color }),
       ...(params.year && { year: params.year }),
       ...(params.availability && { availability: params.availability }),
+      ...(params.minPrice && { minPrice: params.minPrice }),
+      ...(params.maxPrice && { maxPrice: params.maxPrice }),
     });
     window.location.href = `/vehicle-list?${searchParams.toString()}`;
   };
@@ -252,6 +256,32 @@ export default function SearchAndFilterForm({
                   <option value="true">Available</option>
                   <option value="false">Unavailable</option>
                 </select>
+              </label>
+
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[var(--color-fg)]">
+                Min Price ($/day)
+                <input
+                  type="number"
+                  name="minPrice"
+                  defaultValue={params.minPrice ?? ""}
+                  placeholder="0"
+                  min="0"
+                  className={styles.filterSelect}
+                  style={{ padding: "0.5rem" }}
+                />
+              </label>
+
+              <label className="flex flex-col gap-1 text-sm font-semibold text-[var(--color-fg)]">
+                Max Price ($/day)
+                <input
+                  type="number"
+                  name="maxPrice"
+                  defaultValue={params.maxPrice ?? ""}
+                  placeholder="1000"
+                  min="0"
+                  className={styles.filterSelect}
+                  style={{ padding: "0.5rem" }}
+                />
               </label>
 
               <div className="flex items-end gap-2 md:col-span-2">
