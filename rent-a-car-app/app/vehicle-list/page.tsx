@@ -309,7 +309,7 @@ export default async function Page({
                       href={`/vehicle-list/${car.id}?${buildQueryString(currentPage)}`}
                       className="rounded-lg bg-[var(--color-primary)] text-center px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 active:scale-95 whitespace-nowrap flex-shrink-0"
                     >
-                      Select Vehicle
+                      View Details
                     </Link>
                   </div>
                 </div>
