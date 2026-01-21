@@ -1,5 +1,5 @@
 import Link from "next/link";
-import FilterForm from "@/app/components/FilterForm";
+import SearchAndFilterForm from "@/app/components/SearchAndFilterForm";
 
 type CarApi = {
   id: number;
@@ -51,6 +51,12 @@ export default async function Page({
   searchParams,
 }: {
   searchParams?: Promise<{
+    pickupLocation?: string;
+    returnLocation?: string;
+    pickupDate?: string;
+    pickupTime?: string;
+    dropoffDate?: string;
+    dropoffTime?: string;
     page?: string;
     fuel?: string;
     doors?: string;
@@ -109,6 +115,26 @@ export default async function Page({
   const start = (currentPage - 1) * PAGE_SIZE;
   const pagedCars = filtered.slice(start, start + PAGE_SIZE);
 
+  // Build query string preserving all params
+  const buildQueryString = (newPage: number) => {
+    const params = new URLSearchParams();
+    params.set("page", String(newPage));
+    if (resolvedParams.pickupLocation) params.set("pickupLocation", resolvedParams.pickupLocation);
+    if (resolvedParams.returnLocation) params.set("returnLocation", resolvedParams.returnLocation);
+    if (resolvedParams.pickupDate) params.set("pickupDate", resolvedParams.pickupDate);
+    if (resolvedParams.pickupTime) params.set("pickupTime", resolvedParams.pickupTime);
+    if (resolvedParams.dropoffDate) params.set("dropoffDate", resolvedParams.dropoffDate);
+    if (resolvedParams.dropoffTime) params.set("dropoffTime", resolvedParams.dropoffTime);
+    if (resolvedParams.fuel) params.set("fuel", resolvedParams.fuel);
+    if (resolvedParams.doors) params.set("doors", resolvedParams.doors);
+    if (resolvedParams.make) params.set("make", resolvedParams.make);
+    if (resolvedParams.model) params.set("model", resolvedParams.model);
+    if (resolvedParams.color) params.set("color", resolvedParams.color);
+    if (resolvedParams.year) params.set("year", resolvedParams.year);
+    if (resolvedParams.availability) params.set("availability", resolvedParams.availability);
+    return params.toString();
+  };
+
   return (
     <main className="flex min-h-screen flex-col gap-8 px-4 py-10 md:px-10">
       <header className="flex flex-col gap-3 text-center">
@@ -122,7 +148,7 @@ export default async function Page({
         </p>
       </header>
 
-      <FilterForm
+      <SearchAndFilterForm
         fuelOptions={fuelOptions}
         doorOptions={doorOptions}
         makeOptions={makeOptions}
@@ -216,7 +242,7 @@ export default async function Page({
           className={`rounded-lg border px-3 py-2 text-sm font-semibold transition hover:bg-[var(--color-bg-elevated)] ${
             currentPage <= 1 ? "pointer-events-none opacity-50" : ""
           }`}
-          href={`/vehicle-list?page=${Math.max(1, currentPage - 1)}`}
+          href={`/vehicle-list?${buildQueryString(Math.max(1, currentPage - 1))}`}
         >
           Previous
         </Link>
@@ -228,7 +254,7 @@ export default async function Page({
           className={`rounded-lg border px-3 py-2 text-sm font-semibold transition hover:bg-[var(--color-bg-elevated)] ${
             currentPage >= totalPages ? "pointer-events-none opacity-50" : ""
           }`}
-          href={`/vehicle-list?page=${Math.min(totalPages, currentPage + 1)}`}
+          href={`/vehicle-list?${buildQueryString(Math.min(totalPages, currentPage + 1))}`}
         >
           Next
         </Link>
