@@ -1,7 +1,112 @@
+"use client";
+
+import { useState } from "react";
+import { z } from "zod";
+import searchFormStyles from "../components/SearchForm.module.scss";
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
 export default function Page() {
+  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("submitting");
+    setErrors({});
+
+    const result = loginSchema.safeParse(form);
+    if (!result.success) {
+      const nextErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path.length) nextErrors[issue.path[0].toString()] = issue.message;
+      });
+      setErrors(nextErrors);
+      setStatus("error");
+      return;
+    }
+
+    // Mock success path
+    setStatus("success");
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center p-10">
-      <h1 className="text-6xl font-extrabold tracking-tight">Login</h1>
+    <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-[var(--color-fg)]">Welcome back</h1>
+          <p className="text-[var(--color-fg-muted)] mt-2">Sign in to continue your booking.</p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--glass-bg)] p-6 shadow"
+        >
+          <div className="flex flex-col gap-2">
+            <label className={searchFormStyles.fieldLabel}>Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="you@example.com"
+              className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.email ? "border-red-500" : ""}`}
+              style={{
+                background: "var(--color-bg-elevated)",
+                color: form.email ? "var(--color-fg)" : "var(--color-fg-muted)",
+                borderColor: errors.email ? "#ef4444" : "var(--color-border)",
+              }}
+            />
+            {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className={searchFormStyles.fieldLabel}>Password</label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="••••••••"
+              className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.password ? "border-red-500" : ""}`}
+              style={{
+                background: "var(--color-bg-elevated)",
+                color: form.password ? "var(--color-fg)" : "var(--color-fg-muted)",
+                borderColor: errors.password ? "#ef4444" : "var(--color-border)",
+              }}
+            />
+            {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+          </div>
+
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md bg-[var(--color-primary)] px-4 py-2 font-semibold text-white shadow transition hover:opacity-90 disabled:opacity-70"
+          >
+            {status === "submitting" ? "Signing in..." : "Sign in"}
+          </button>
+
+          {status === "success" && (
+            <p className="text-sm text-green-600 text-center">Signed in successfully (mock)</p>
+          )}
+          {status === "error" && Object.keys(errors).length === 0 && (
+            <p className="text-sm text-red-500 text-center">Please check the fields above.</p>
+          )}
+
+          <p className="text-sm text-center text-[var(--color-fg-muted)]">
+            Don’t have an account? <a href="/register" className="text-[var(--color-primary)] font-semibold hover:underline">Create one here</a>.
+          </p>
+        </form>
+      </div>
     </main>
   );
 }
