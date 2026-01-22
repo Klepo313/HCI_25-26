@@ -7,9 +7,9 @@
 
 .stepsContainer {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 1rem;
+  gap: 2rem;
   flex-wrap: wrap;
   padding: 2rem;
   background: var(--glass-bg);
@@ -23,6 +23,7 @@
   align-items: center;
   gap: 0.5rem;
   position: relative;
+  flex: 0 1 auto;
 }
 
 .step {
@@ -61,8 +62,8 @@
 .stepConnector {
   position: absolute;
   top: 24px;
-  left: calc(100% + 0.5rem);
-  width: 60px;
+  left: calc(100% - 0.5rem);
+  width: 1rem;
   height: 2px;
   background: var(--color-border);
   transition: background 0.3s ease;

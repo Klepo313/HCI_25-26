@@ -254,14 +254,9 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
             >
               <step.icon size={20} />
             </div>
-            <span className={styles.stepLabel}>{step.title}</span>
-            {index < steps.length - 1 && (
-              <div
-                className={`${styles.stepConnector} ${
-                  currentStep > step.number ? styles.stepConnectorActive : ""
-                }`}
-              />
-            )}
+            <span className={styles.stepLabel}>
+              {step.number}. {step.title}
+            </span>
           </div>
         ))}
       </div>
