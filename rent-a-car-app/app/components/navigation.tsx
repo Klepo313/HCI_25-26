@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "./AuthProvider";
 import styles from "./Navigation.module.scss";
 import { Menu, X } from "lucide-react";
 
@@ -41,6 +42,8 @@ export function Navigation() {
     }
   }, [sidebarOpen]);
 
+  const { user, logout } = useAuth();
+
   return (
     <>
       <div className={styles.navBar} role="navigation" aria-label="Main">
@@ -59,18 +62,32 @@ export function Navigation() {
           )}
           {!isMobile && (
             <ul className={styles.links}>
-              {pages.map((p) => (
-                <li key={p.path} style={{ height: "min-content" }}>
-                  <Link
-                    href={p.path}
-                    className={`${styles.link} ${
-                      currentPath === p.path ? styles.active : ""
-                    } ${p.path === "/login" ? styles.loginCta : ""}`}
+              {pages
+                .filter((p) => !(p.path === "/login" && user))
+                .map((p) => (
+                  <li key={p.path} style={{ height: "min-content" }}>
+                    <Link
+                      href={p.path}
+                      className={`${styles.link} ${
+                        currentPath === p.path ? styles.active : ""
+                      } ${p.path === "/login" ? styles.loginCta : ""}`}
+                    >
+                      {p.title}
+                    </Link>
+                  </li>
+                ))}
+
+              {user && (
+                <li style={{ height: "min-content" }}>
+                  <button
+                    onClick={() => logout()}
+                    className={`${styles.link} ${styles.loginCta}`}
+                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
                   >
-                    {p.title}
-                  </Link>
+                    Logout
+                  </button>
                 </li>
-              ))}
+              )}
             </ul>
           )}
           {!isMobile && <ThemeToggle />}
@@ -97,18 +114,34 @@ export function Navigation() {
               <X size={28} />
             </button>
             <ul className={styles.sidebarLinks}>
-              {pages.map((p) => (
-                <li key={p.path}>
-                  <Link
-                    href={p.path}
-                    className={`${currentPath === p.path ? styles.active : ""} ${p.path === "/login" ? "" : ""}`}
-                    // className={`${currentPath === p.path ? styles.active : ""} ${p.path === "/login" ? styles.loginCta : ""}`}
-                    onClick={() => setSidebarOpen(false)}
+              {pages
+                .filter((p) => !(p.path === "/login" && user))
+                .map((p) => (
+                  <li key={p.path}>
+                    <Link
+                      href={p.path}
+                      className={`${currentPath === p.path ? styles.active : ""} ${p.path === "/login" ? "" : ""}`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      {p.title}
+                    </Link>
+                  </li>
+                ))}
+
+              {user && (
+                <li>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setSidebarOpen(false);
+                    }}
+                    className={styles.link}
+                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
                   >
-                    {p.title}
-                  </Link>
+                    Logout
+                  </button>
                 </li>
-              ))}
+              )}
             </ul>
             <ThemeToggle />
           </nav>
