@@ -17,7 +17,6 @@ const pages: Page[] = [
   { title: "About", path: "/about" },
   { title: "Contact", path: "/contact" },
   { title: "Login", path: "/login" },
-  { title: "Register", path: "/register" },
 ];
 
 export function Navigation() {
@@ -66,7 +65,7 @@ export function Navigation() {
                     href={p.path}
                     className={`${styles.link} ${
                       currentPath === p.path ? styles.active : ""
-                    }`}
+                    } ${p.path === "/login" ? styles.loginCta : ""}`}
                   >
                     {p.title}
                   </Link>
@@ -102,7 +101,8 @@ export function Navigation() {
                 <li key={p.path}>
                   <Link
                     href={p.path}
-                    className={currentPath === p.path ? styles.active : ""}
+                    className={`${currentPath === p.path ? styles.active : ""} ${p.path === "/login" ? "" : ""}`}
+                    // className={`${currentPath === p.path ? styles.active : ""} ${p.path === "/login" ? styles.loginCta : ""}`}
                     onClick={() => setSidebarOpen(false)}
                   >
                     {p.title}
