@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import searchFormStyles from "../components/SearchForm.module.scss";
+import { useToast } from "../components/ToastProvider";
 
 const registerSchema = z
   .object({
@@ -34,8 +36,10 @@ export default function Page() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const router = useRouter();
+  const { showToast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
     setErrors({});
@@ -51,8 +55,39 @@ export default function Page() {
       return;
     }
 
-    // Mock success path
-    setStatus("success");
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const name = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+      const username = `${form.firstName.trim().charAt(0)}${form.lastName.trim().replace(/\s+/g, "")}`.toLowerCase();
+      const payload = {
+        name,
+        email: form.email,
+        password: form.password,
+        username,
+      };
+
+      const response = await fetch(`${baseUrl}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const text = (await response.text()) || "Registration failed";
+        throw new Error(text);
+      }
+
+      setStatus("success");
+      showToast("Account created! Please log in.", "success");
+      setTimeout(() => {
+        router.push("/login");
+      }, 800);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred during registration";
+      setErrors({ form: message });
+      showToast(message, "error");
+      setStatus("error");
+    }
   };
 
   return (
@@ -165,9 +200,12 @@ export default function Page() {
           </button>
 
           {status === "success" && (
-            <p className="text-sm text-green-600 text-center">Account created successfully (mock)</p>
+            <p className="text-sm text-green-600 text-center">Account created! Redirecting to login...</p>
           )}
-          {status === "error" && Object.keys(errors).length === 0 && (
+          {errors.form && (
+            <p className="text-sm text-red-500 text-center">{errors.form}</p>
+          )}
+          {status === "error" && !errors.form && Object.keys(errors).length === 0 && (
             <p className="text-sm text-red-500 text-center">Please check the fields above.</p>
           )}
 
