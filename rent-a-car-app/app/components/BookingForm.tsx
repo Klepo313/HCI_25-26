@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import { Check, CreditCard, Calendar, User, ChevronRight } from "lucide-react";
+import { Check, CreditCard, Calendar, User, ChevronRight, Loader2 } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { useToast } from "./ToastProvider";
 import styles from "./BookingForm.module.scss";
@@ -14,7 +14,7 @@ const personalInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.email("Please enter a valid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
+  phone: z.string().min(7, "Please enter a valid phone number"),
 });
 
 const bookingDatesSchema = z
@@ -35,31 +35,54 @@ const bookingDatesSchema = z
 
 const paymentSchema = z
   .object({
-    paymentMethod: z.enum(["credit_card", "debit_card", "paypal"]),
-    cardNumber: z.string().optional(),
-    cardName: z.string().optional(),
-    expiryDate: z.string().optional(),
-    cvv: z.string().optional(),
+    paymentMethod: z.enum(["credit_card", "debit_card"]),
+    cardNumber: z.string().min(1, "Card number is required"),
+    cardName: z.string().min(1, "Cardholder name is required"),
+    expiryDate: z.string().min(1, "Expiry date is required"),
+    cvv: z.string().min(1, "CVV is required"),
   })
   .refine(
     (data) => {
-      if (
-        data.paymentMethod === "credit_card" ||
-        data.paymentMethod === "debit_card"
-      ) {
-        return (
-          data.cardNumber &&
-          data.cardName &&
-          data.expiryDate &&
-          data.cvv &&
-          data.cardNumber.length >= 16
-        );
+      if (data.paymentMethod === "credit_card" || data.paymentMethod === "debit_card") {
+        const cardDigits = data.cardNumber.replace(/\s+/g, "");
+        if (cardDigits.length !== 16 || !/^\d+$/.test(cardDigits)) return false;
       }
       return true;
     },
     {
-      message: "Please fill in all card details",
+      message: "Card number must be exactly 16 digits",
       path: ["cardNumber"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.paymentMethod === "credit_card" || data.paymentMethod === "debit_card") {
+        const match = data.expiryDate.match(/^(\d{2})\/(\d{2})$/);
+        if (!match) return false;
+        const month = Number(match[1]);
+        const year = Number(`20${match[2]}`);
+        if (month < 1 || month > 12) return false;
+        const now = new Date();
+        const expiry = new Date(year, month, 0, 23, 59, 59);
+        if (expiry < now) return false;
+      }
+      return true;
+    },
+    {
+      message: "Expiry date must be in MM/YY format and not expired",
+      path: ["expiryDate"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.paymentMethod === "credit_card" || data.paymentMethod === "debit_card") {
+        if (data.cvv.length < 3 || data.cvv.length > 4 || !/^\d+$/.test(data.cvv)) return false;
+      }
+      return true;
+    },
+    {
+      message: "CVV must be 3 or 4 digits",
+      path: ["cvv"],
     },
   );
 
@@ -97,7 +120,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
     firstName: user?.name?.split(" ")[0] || "",
     lastName: user?.name?.split(" ").slice(1).join(" ") || "",
     email: user?.email || "",
-    phone: user?.phone || "",
+    phone: user?.phone ? String(user.phone) : "",
   });
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     pickupDate: initialDates.pickupDate || "",
@@ -107,6 +130,10 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
   });
   const [payment, setPayment] = useState<Partial<Payment>>({
     paymentMethod: "credit_card",
+    cardNumber: "",
+    cardName: "",
+    expiryDate: "",
+    cvv: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
@@ -116,6 +143,15 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
     const digits = value.replace(/\D/g, "").slice(0, 4);
     if (digits.length <= 2) return digits;
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  const formatCardNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  };
+
+  const formatCVV = (value: string) => {
+    return value.replace(/\D/g, "").slice(0, 4);
   };
 
   // Keep personal info in sync with logged-in user, but allow overriding for someone else
@@ -129,7 +165,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
       firstName: prev.firstName || userFirst,
       lastName: prev.lastName || userLast,
       email: prev.email || user.email || "",
-      phone: prev.phone || user.phone || "",
+      phone: prev.phone || (user.phone ? String(user.phone) : ""),
     }));
   }, [user]);
 
@@ -766,7 +802,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
               <label className={styles.label}>
                 Payment Method <span className="text-red-500">*</span>
               </label>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <button
                   type="button"
                   onClick={() =>
@@ -795,27 +831,6 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                   <CreditCard size={24} />
                   <span>Debit Card</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPayment({ ...payment, paymentMethod: "paypal" })
-                  }
-                  className={`${styles.paymentMethod} ${
-                    payment.paymentMethod === "paypal"
-                      ? styles.paymentMethodActive
-                      : ""
-                  }`}
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.76-4.852a.932.932 0 0 1 .922-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.66-4.46z" />
-                  </svg>
-                  <span>PayPal</span>
-                </button>
               </div>
             </div>
 
@@ -830,7 +845,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                     type="text"
                     value={payment.cardNumber || ""}
                     onChange={(e) =>
-                      setPayment({ ...payment, cardNumber: e.target.value })
+                      setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) })
                     }
                     className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
                       errors.cardNumber ? "border-red-500" : ""
@@ -866,18 +881,23 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                     onChange={(e) =>
                       setPayment({ ...payment, cardName: e.target.value })
                     }
-                    className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl}`}
+                    className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
+                      errors.cardName ? "border-red-500" : ""
+                    }`}
                     style={{
                       background: "var(--color-bg-elevated)",
                       color: payment.cardName
                         ? "var(--color-fg)"
                         : "var(--color-fg-muted)",
-                      borderColor: "var(--color-border)",
+                      borderColor: errors.cardName ? "#ef4444" : "var(--color-border)",
                       transition:
                         "background 0.2s, color 0.2s, border-color 0.2s",
                     }}
                     placeholder="John Doe"
                   />
+                  {errors.cardName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.cardName}</p>
+                  )}
                 </div>
 
                 <div className={`${styles.cardInfoExpiryCvv}`}>
@@ -894,19 +914,24 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                           expiryDate: formatExpiry(e.target.value),
                         })
                       }
-                      className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl}`}
+                      className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
+                        errors.expiryDate ? "border-red-500" : ""
+                      }`}
                       style={{
                         background: "var(--color-bg-elevated)",
                         color: payment.expiryDate
                           ? "var(--color-fg)"
                           : "var(--color-fg-muted)",
-                        borderColor: "var(--color-border)",
+                        borderColor: errors.expiryDate ? "#ef4444" : "var(--color-border)",
                         transition:
                           "background 0.2s, color 0.2s, border-color 0.2s",
                       }}
                       placeholder="MM/YY"
                       maxLength={5}
                     />
+                    {errors.expiryDate && (
+                      <p className="text-red-500 text-xs mt-1">{errors.expiryDate}</p>
+                    )}
                   </div>
 
                   <div>
@@ -917,15 +942,17 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                       type="text"
                       value={payment.cvv || ""}
                       onChange={(e) =>
-                        setPayment({ ...payment, cvv: e.target.value })
+                        setPayment({ ...payment, cvv: formatCVV(e.target.value) })
                       }
-                      className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl}`}
+                      className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
+                        errors.cvv ? "border-red-500" : ""
+                      }`}
                       style={{
                         background: "var(--color-bg-elevated)",
                         color: payment.cvv
                           ? "var(--color-fg)"
                           : "var(--color-fg-muted)",
-                        borderColor: "var(--color-border)",
+                        borderColor: errors.cvv ? "#ef4444" : "var(--color-border)",
                         transition:
                           "background 0.2s, color 0.2s, border-color 0.2s",
                       }}
@@ -933,17 +960,11 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                       maxLength={4}
                       disabled={isSubmitting}
                     />
+                    {errors.cvv && (
+                      <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {payment.paymentMethod === "paypal" && (
-              <div className={styles.paypalInfo}>
-                <p className="text-sm text-[var(--color-fg-muted)]">
-                  You will be redirected to PayPal to complete your payment
-                  securely.
-                </p>
               </div>
             )}
 
@@ -983,10 +1004,20 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
             <button
               type="button"
               onClick={handleConfirmBooking}
-              className={styles.buttonPrimary}
+              disabled={isSubmitting}
+              className={`${styles.buttonPrimary} ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""}`}
             >
-              Confirm & Pay
-              <Check size={20} />
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Confirm & Pay
+                  <Check size={20} />
+                </>
+              )}
             </button>
           )}
         </div>
