@@ -9,9 +9,7 @@ const loginSchema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Please enter a valid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -19,9 +17,11 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function Page() {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
     setErrors({});
@@ -30,23 +30,87 @@ export default function Page() {
     if (!result.success) {
       const nextErrors: Record<string, string> = {};
       result.error.issues.forEach((issue) => {
-        if (issue.path.length) nextErrors[issue.path[0].toString()] = issue.message;
+        if (issue.path.length)
+          nextErrors[issue.path[0].toString()] = issue.message;
       });
       setErrors(nextErrors);
       setStatus("error");
       return;
     }
 
-    // Mock success path
-    setStatus("success");
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const params = new URLSearchParams({
+        email: form.email,
+        password: form.password,
+      });
+
+      console.log("Logging in with:", form.email, form.password);
+
+      const response = await fetch(`${baseUrl}/users?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error("User not found. Invalid email or password.");
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      let payload: unknown;
+      if (contentType.includes("application/json")) {
+        payload = await response.json();
+      } else {
+        const text = (await response.text()).trim();
+        // Mock API sometimes returns plain string "Not found"
+        if (text.toLowerCase() === "not found") {
+          setErrors({ form: "Invalid email or password" });
+          setStatus("error");
+          return;
+        }
+        throw new Error("Unexpected response format");
+      }
+
+      // If API returns a JSON string "Not found"
+      if (
+        typeof payload === "string" &&
+        payload.toLowerCase() === "not found"
+      ) {
+        setErrors({ form: "Invalid email or password" });
+        setStatus("error");
+        return;
+      }
+
+      const users = payload as unknown;
+
+      // Check if user exists with matching credentials
+      if (Array.isArray(users) && users.length > 0) {
+        const user = users[0];
+        localStorage.setItem("app-user", JSON.stringify(user));
+        setStatus("success");
+        setTimeout(() => {
+          window.location.href = "/user";
+        }, 1500);
+      } else {
+        setErrors({ form: "Invalid email or password" });
+        setStatus("error");
+      }
+    } catch (err) {
+      setErrors({
+        form:
+          err instanceof Error ? err.message : "An error occurred during login",
+      });
+      setStatus("error");
+    }
   };
 
   return (
     <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-[var(--color-fg)]">Welcome back</h1>
-          <p className="text-[var(--color-fg-muted)] mt-2">Sign in to continue your booking.</p>
+          <h1 className="text-3xl font-bold text-[var(--color-fg)]">
+            Welcome back
+          </h1>
+          <p className="text-[var(--color-fg-muted)] mt-2">
+            Sign in to continue your booking.
+          </p>
         </div>
 
         <form
@@ -67,7 +131,9 @@ export default function Page() {
                 borderColor: errors.email ? "#ef4444" : "var(--color-border)",
               }}
             />
-            {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-xs text-red-500">{errors.email}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -80,11 +146,17 @@ export default function Page() {
               className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.password ? "border-red-500" : ""}`}
               style={{
                 background: "var(--color-bg-elevated)",
-                color: form.password ? "var(--color-fg)" : "var(--color-fg-muted)",
-                borderColor: errors.password ? "#ef4444" : "var(--color-border)",
+                color: form.password
+                  ? "var(--color-fg)"
+                  : "var(--color-fg-muted)",
+                borderColor: errors.password
+                  ? "#ef4444"
+                  : "var(--color-border)",
               }}
             />
-            {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-xs text-red-500">{errors.password}</p>
+            )}
           </div>
 
           <button
@@ -96,14 +168,30 @@ export default function Page() {
           </button>
 
           {status === "success" && (
-            <p className="text-sm text-green-600 text-center">Signed in successfully (mock)</p>
+            <p className="text-sm text-green-600 text-center">
+              Signed in successfully! Redirecting...
+            </p>
           )}
-          {status === "error" && Object.keys(errors).length === 0 && (
-            <p className="text-sm text-red-500 text-center">Please check the fields above.</p>
+          {errors.form && (
+            <p className="text-sm text-red-500 text-center">{errors.form}</p>
           )}
+          {status === "error" &&
+            !errors.form &&
+            Object.keys(errors).length === 0 && (
+              <p className="text-sm text-red-500 text-center">
+                Please check the fields above.
+              </p>
+            )}
 
           <p className="text-sm text-center text-[var(--color-fg-muted)]">
-            Don’t have an account? <a href="/register" className="text-[var(--color-primary)] font-semibold hover:underline">Create one here</a>.
+            Don’t have an account?{" "}
+            <a
+              href="/register"
+              className="text-[var(--color-primary)] font-semibold hover:underline"
+            >
+              Create one here
+            </a>
+            .
           </p>
         </form>
       </div>
