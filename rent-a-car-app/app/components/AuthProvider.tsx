@@ -12,6 +12,7 @@ type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<User>;
   logout: () => void;
+  setUserFromExternal: (user: { id: string | number; email: string; name?: string }) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,7 +79,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  const setUserFromExternal = (u: { id: string | number; email: string; name?: string }) => {
+    const nextUser: User = {
+      id: u.id.toString(),
+      email: u.email,
+      name: u.name,
+    };
+    setUser(nextUser);
+    try {
+      localStorage.setItem("rac_user", JSON.stringify(nextUser));
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  return <AuthContext.Provider value={{ user, login, logout, setUserFromExternal }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

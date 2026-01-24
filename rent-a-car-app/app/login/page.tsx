@@ -21,7 +21,7 @@ export default function Page() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const router = useRouter();
-  const { login } = useAuth();
+  const { setUserFromExternal } = useAuth();
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,8 +87,13 @@ export default function Page() {
 
       // Check if user exists with matching credentials
       if (Array.isArray(users) && users.length > 0) {
-        const user = users[0];
-        localStorage.setItem("app-user", JSON.stringify(user));
+        const raw = users[0] as any;
+        const mapped = {
+          id: raw.id ?? raw.id?.toString?.() ?? "",
+          email: raw.email ?? (typeof raw.email === "string" ? raw.email : form.identifier),
+          name: raw.name ?? raw.username ?? undefined,
+        };
+        setUserFromExternal(mapped);
         setStatus("success");
         showToast("Signed in successfully! Redirecting...", "success");
         setTimeout(() => {
