@@ -22,6 +22,19 @@ type Reservation = {
   [key: string]: any;
 };
 
+function calculateTotalCost(
+  dailyRate: number | undefined,
+  pickup: string | undefined,
+  returnDate: string | undefined,
+): number {
+  if (!dailyRate || !pickup || !returnDate) return 0;
+  const pickupDate = new Date(pickup);
+  const returnDateObj = new Date(returnDate);
+  const diffTime = Math.abs(returnDateObj.getTime() - pickupDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays) * dailyRate;
+}
+
 export default function Page() {
   const { user } = useAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -97,13 +110,13 @@ export default function Page() {
                 <h2 className="text-2xl font-bold text-[var(--color-fg)]">
                   Account Information
                 </h2>
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white text-2xl font-bold">
+                {/* <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white text-2xl font-bold">
                   {user.name
                     ?.split(" ")
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase() || "U"}
-                </div>
+                </div> */}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-2">
@@ -287,13 +300,29 @@ export default function Page() {
                       </div>
 
                       {/* Footer: ID and timestamp */}
-                      <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-fg-muted)]">
-                        <span>Reservation ID: {res.id}</span>
-                        {res.createdAt && (
-                          <span>
-                            Created:{" "}
-                            {new Date(res.createdAt).toLocaleDateString()}
-                          </span>
+                      <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
+                        <div className="flex items-center gap-6 text-xs text-[var(--color-fg-muted)]">
+                          <span>Reservation ID: {res.id}</span>
+                          {res.createdAt && (
+                            <span>
+                              Created:{" "}
+                              {new Date(res.createdAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        {res.dailyRate && (res.pickup || res.pickupDate) && (res.return || res.dropoffDate) && (
+                          <div className="text-right">
+                            <p className="text-xs text-[var(--color-fg-muted)] mb-1">
+                              Total Cost
+                            </p>
+                            <p className="text-lg font-bold text-[var(--color-primary)]">
+                              ${calculateTotalCost(
+                                res.dailyRate,
+                                res.pickup || res.pickupDate,
+                                res.return || res.dropoffDate,
+                              ).toFixed(2)}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
