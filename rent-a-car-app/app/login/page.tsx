@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "../components/AuthProvider";
@@ -17,7 +17,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export default function Page() {
+function LoginForm() {
   const [form, setForm] = useState<LoginForm>({ identifier: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -214,5 +214,26 @@ export default function Page() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen overflow-hidden bg-[var(--color-bg)] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-[var(--color-fg)]">
+              Welcome back
+            </h1>
+            <p className="text-[var(--color-fg-muted)] mt-2">
+              Loading...
+            </p>
+          </div>
+        </div>
+      </main>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
