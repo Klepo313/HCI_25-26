@@ -14,6 +14,9 @@ const registerSchema = z
       .string()
       .min(1, "Email is required")
       .email("Please enter a valid email"),
+    phone: z
+      .string()
+      .min(7, "Phone number must be at least 7 digits"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters"),
@@ -31,6 +34,7 @@ export default function Page() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -62,6 +66,7 @@ export default function Page() {
       const payload = {
         name,
         email: form.email,
+        phone: form.phone,
         password: form.password,
         username,
       };
@@ -153,6 +158,23 @@ export default function Page() {
               }}
             />
             {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className={searchFormStyles.fieldLabel}>Phone</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              placeholder="+1 234 567 890"
+              className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.phone ? "border-red-500" : ""}`}
+              style={{
+                background: "var(--color-bg-elevated)",
+                color: form.phone ? "var(--color-fg)" : "var(--color-fg-muted)",
+                borderColor: errors.phone ? "#ef4444" : "var(--color-border)",
+              }}
+            />
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

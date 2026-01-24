@@ -95,6 +95,7 @@ export default function Page() {
           email: raw.email ?? raw.username ?? form.identifier,
           name: raw.name ?? raw.username ?? undefined,
           username: raw.username ?? (!isEmail ? form.identifier : undefined),
+          phone: raw.phone ?? raw.phoneNumber ?? raw.mobile,
         };
         setUserFromExternal(mapped);
         setStatus("success");
