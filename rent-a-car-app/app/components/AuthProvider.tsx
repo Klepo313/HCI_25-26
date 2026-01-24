@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 type User = {
   id: string;
   name?: string;
+  username?: string;
   email: string;
 };
 
@@ -12,7 +13,12 @@ type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<User>;
   logout: () => void;
-  setUserFromExternal: (user: { id: string | number; email: string; name?: string }) => void;
+  setUserFromExternal: (user: {
+    id: string | number;
+    email: string;
+    name?: string;
+    username?: string;
+  }) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,11 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // DummyJSON returns fields like id, username, email, firstName, lastName, accessToken
     const nameParts = [data.firstName, data.lastName].filter(Boolean);
-    const fullName = nameParts.length ? nameParts.join(" ") : data.username || undefined;
+    const fullName = nameParts.length
+      ? nameParts.join(" ")
+      : data.username || undefined;
     const nextUser: User = {
       id: data.id?.toString?.() ?? "",
       name: fullName,
       email: data.email,
+      username: data.username,
     };
 
     // Persist user and token (token optional)
@@ -79,11 +88,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setUserFromExternal = (u: { id: string | number; email: string; name?: string }) => {
+  const setUserFromExternal = (u: {
+    id: string | number;
+    email: string;
+    name?: string;
+    username?: string;
+  }) => {
     const nextUser: User = {
       id: u.id.toString(),
       email: u.email,
       name: u.name,
+      username: u.username,
     };
     setUser(nextUser);
     try {
@@ -93,7 +108,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  return <AuthContext.Provider value={{ user, login, logout, setUserFromExternal }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, logout, setUserFromExternal }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

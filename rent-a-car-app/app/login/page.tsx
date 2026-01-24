@@ -43,12 +43,14 @@ export default function Page() {
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const isEmail = form.identifier.includes("@");
+      const loginField = isEmail ? "email" : "username";
       const params = new URLSearchParams({
-        email: form.identifier,
+        [loginField]: form.identifier,
         password: form.password,
       });
 
-      console.log("Logging in with:", form.identifier, form.password);
+      console.log("Logging in with:", loginField, form.identifier);
 
       const response = await fetch(`${baseUrl}/users?${params.toString()}`);
 
@@ -90,8 +92,9 @@ export default function Page() {
         const raw = users[0] as any;
         const mapped = {
           id: raw.id ?? raw.id?.toString?.() ?? "",
-          email: raw.email ?? (typeof raw.email === "string" ? raw.email : form.identifier),
+          email: raw.email ?? raw.username ?? form.identifier,
           name: raw.name ?? raw.username ?? undefined,
+          username: raw.username ?? (!isEmail ? form.identifier : undefined),
         };
         setUserFromExternal(mapped);
         setStatus("success");
