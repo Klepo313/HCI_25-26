@@ -18,14 +18,13 @@ type CarApi = {
 const PAGE_SIZE = 9;
 
 async function fetchCars(): Promise<CarApi[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await fetch(`${baseUrl}/cars`, {
+  const res = await fetch("https://myfakeapi.com/api/cars", {
     next: { revalidate: 60 * 60 * 6 },
   });
   if (!res.ok) throw new Error("Failed to load cars");
-  const data = (await res.json()) as CarApi[];
-  if (!Array.isArray(data)) throw new Error("Cars payload invalid");
-  return data;
+  const data = (await res.json()) as { cars?: CarApi[] };
+  if (!data.cars) throw new Error("Cars payload missing");
+  return data.cars;
 }
 
 function mapCar(car: CarApi) {
@@ -83,6 +82,7 @@ export default async function Page({
   try {
     const apiCars = await fetchCars();
     cars = apiCars.map(mapCar);
+    console.log("Fetched cars:", cars);
   } catch (err) {
     error = err instanceof Error ? err.message : "Unknown error";
   }

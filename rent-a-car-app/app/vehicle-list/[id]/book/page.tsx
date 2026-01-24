@@ -37,15 +37,14 @@ function mapCar(car: CarApi) {
 }
 
 async function fetchCarById(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const res = await fetch(`${baseUrl}/cars`, {
+  const res = await fetch("https://myfakeapi.com/api/cars", {
     next: { revalidate: 60 * 60 * 6 },
   });
   if (!res.ok) throw new Error("Failed to load cars");
-  const data = (await res.json()) as CarApi[];
-  if (!Array.isArray(data)) throw new Error("Cars payload invalid");
+  const data = (await res.json()) as { cars?: CarApi[] };
+  if (!data.cars) throw new Error("Cars payload missing");
 
-  const car = data.find((c) => c.id === Number(id));
+  const car = data.cars.find((c) => c.id === Number(id));
   if (!car) return null;
 
   return mapCar(car);
@@ -93,7 +92,9 @@ export default async function BookingPage({
         <h1 className="text-4xl font-extrabold tracking-tight">
           Vehicle Unavailable
         </h1>
-        <p className="text-muted">This vehicle is currently not available for booking.</p>
+        <p className="text-muted">
+          This vehicle is currently not available for booking.
+        </p>
         <Link
           href={`/vehicle-list/${car.id}`}
           className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
