@@ -105,7 +105,7 @@ export default function Page() {
                     .toUpperCase() || "U"}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-[var(--color-fg-muted)] uppercase tracking-wide">
                     Full Name
@@ -128,6 +128,14 @@ export default function Page() {
                   </p>
                   <p className="text-lg font-medium text-[var(--color-fg)]">
                     {user.email}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-[var(--color-fg-muted)] uppercase tracking-wide">
+                    Phone
+                  </p>
+                  <p className="text-lg font-medium text-[var(--color-fg)]">
+                    {user.phone || "—"}
                   </p>
                 </div>
               </div>

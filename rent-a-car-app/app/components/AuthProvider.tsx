@@ -8,6 +8,7 @@ type User = {
   name?: string;
   username?: string;
   email: string;
+  phone?: string;
 };
 
 type AuthContextType = {
@@ -19,6 +20,7 @@ type AuthContextType = {
     email: string;
     name?: string;
     username?: string;
+    phone?: string;
   }) => void;
 };
 
@@ -65,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: fullName,
       email: data.email,
       username: data.username,
+      phone: data.phone,
     };
 
     // Persist user and token (token optional)
@@ -89,7 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       // ignore
     }
-    router.push("/");
+    router.replace("/");
+    if (typeof window !== "undefined") {
+      window.location.assign("/");
+    }
   };
 
   const setUserFromExternal = (u: {
@@ -97,12 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string;
     name?: string;
     username?: string;
+    phone?: string;
   }) => {
     const nextUser: User = {
       id: u.id.toString(),
       email: u.email,
       name: u.name,
       username: u.username,
+      phone: u.phone,
     };
     setUser(nextUser);
     try {
