@@ -1,25 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../components/AuthProvider";
+import { useToast } from "../components/ToastProvider";
 import { z } from "zod";
 import searchFormStyles from "../components/SearchForm.module.scss";
 
 const loginSchema = z.object({
-  email: z
+  identifier: z.string().min(1, "Username or email is required"),
+  password: z
     .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+    .min(8, "Password must be at least 8 characters"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Page() {
-  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
+  const [form, setForm] = useState<LoginForm>({ identifier: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<
-    "idle" | "submitting" | "success" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const router = useRouter();
+  const { login } = useAuth();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,17 +121,17 @@ export default function Page() {
           className="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--glass-bg)] p-6 shadow"
         >
           <div className="flex flex-col gap-2">
-            <label className={searchFormStyles.fieldLabel}>Email</label>
+            <label className={searchFormStyles.fieldLabel}>Username or email</label>
             <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
-              className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.email ? "border-red-500" : ""}`}
+              type="text"
+              value={form.identifier}
+              onChange={(e) => setForm({ ...form, identifier: e.target.value })}
+              placeholder="username or you@example.com"
+              className={`h-11 rounded-md border px-3 text-sm ${searchFormStyles.fieldControl} ${errors.identifier ? "border-red-500" : ""}`}
               style={{
                 background: "var(--color-bg-elevated)",
-                color: form.email ? "var(--color-fg)" : "var(--color-fg-muted)",
-                borderColor: errors.email ? "#ef4444" : "var(--color-border)",
+                color: form.identifier ? "var(--color-fg)" : "var(--color-fg-muted)",
+                borderColor: errors.identifier ? "#ef4444" : "var(--color-border)",
               }}
             />
             {errors.email && (
