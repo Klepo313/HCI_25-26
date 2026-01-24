@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "../components/AuthProvider";
 import { useToast } from "../components/ToastProvider";
 import { z } from "zod";
@@ -21,6 +22,7 @@ export default function Page() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUserFromExternal } = useAuth();
   const { showToast } = useToast();
 
@@ -100,8 +102,9 @@ export default function Page() {
         setUserFromExternal(mapped);
         setStatus("success");
         showToast("Signed in successfully! Redirecting...", "success");
+        const redirectTarget = searchParams?.get("redirect") || "/user";
         setTimeout(() => {
-          router.push("/user");
+          router.push(redirectTarget);
         }, 1500);
       } else {
         setErrors({ form: "Invalid email or password" });

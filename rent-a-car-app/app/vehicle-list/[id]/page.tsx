@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import CarImage from "@/app/components/CarImage";
 import { formatPrice } from "@/app/utils/formatPrice";
+import BookingActions from "./BookingActions";
 
 type CarApi = {
   id: number;
@@ -72,6 +73,9 @@ export default async function Page({
   // Build back link with preserved query params
   const backParams = new URLSearchParams(resolvedSearchParams);
   const backLink = `/vehicle-list${backParams.toString() ? `?${backParams.toString()}` : ""}`;
+  const queryString = backParams.toString();
+  const bookingHref = `/vehicle-list/${resolvedParams.id}/book${queryString ? `?${queryString}` : ""}`;
+  const currentHref = `/vehicle-list/${resolvedParams.id}${queryString ? `?${queryString}` : ""}`;
 
   if (!car) {
     return (
@@ -239,24 +243,12 @@ export default async function Page({
               </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={`/vehicle-list/${car.id}/book?${backParams.toString()}`}
-                className={`flex-1 rounded-lg px-6 py-3 text-center text-base font-semibold transition ${
-                  car.availability
-                    ? "bg-[var(--color-primary)] text-white hover:opacity-90"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
-                }`}
-              >
-                {car.availability ? "Book Now" : "Unavailable"}
-              </Link>
-              <Link
-                href={backLink}
-                className="flex-1 rounded-lg border border-[var(--color-border)] px-6 py-3 text-center text-base font-semibold text-[var(--color-fg)] transition hover:bg-[var(--color-bg-elevated)]"
-              >
-                View More Vehicles
-              </Link>
-            </div>
+            <BookingActions
+              bookingHref={bookingHref}
+              currentHref={currentHref}
+              backLink={backLink}
+              available={car.availability}
+            />
           </div>
         </div>
       </section>
