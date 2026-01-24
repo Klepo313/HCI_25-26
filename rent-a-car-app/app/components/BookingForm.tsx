@@ -267,11 +267,6 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
       setBookingConfirmed(true);
       setCurrentStep(5);
       showToast("Booking confirmed successfully!", "success");
-
-      // Redirect to user profile after 3 seconds
-      setTimeout(() => {
-        router.push("/user");
-      }, 3000);
     } catch (error) {
       console.error("Booking error:", error);
       showToast(
@@ -300,8 +295,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
           Booking Confirmed!
         </h2>
         <p className="text-center text-[var(--color-fg-muted)] mt-2">
-          Your booking has been successfully confirmed. We've sent a
-          confirmation email to <strong>{personalInfo.email}</strong>
+          Your booking has been successfully <strong>confirmed</strong>.
         </p>
 
         <div className={styles.bookingSummary}>
@@ -343,10 +337,10 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
         </div>
 
         <a
-          href="/vehicle-list"
+          href="/user"
           className="mt-6 w-full rounded-lg bg-[var(--color-primary)] px-6 py-3 text-center font-semibold text-white transition hover:opacity-90"
         >
-          Browse More Vehicles
+          Go to My Bookings
         </a>
       </div>
     );
