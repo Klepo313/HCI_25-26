@@ -14,9 +14,9 @@ const pages: Page[] = [
   { title: "Home", path: "/" },
   // { title: "Vehicle Reservation", path: "/vehicle-reservation" },
   { title: "Vehicle List", path: "/vehicle-list" },
-  { title: "User Profile", path: "/user" },
   { title: "About", path: "/about" },
   { title: "Contact", path: "/contact" },
+  { title: "User Profile", path: "/user" },
   { title: "Login", path: "/login" },
 ];
 
