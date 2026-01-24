@@ -44,11 +44,11 @@ export default function Page() {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
       const params = new URLSearchParams({
-        email: form.email,
+        email: form.identifier,
         password: form.password,
       });
 
-      console.log("Logging in with:", form.email, form.password);
+      console.log("Logging in with:", form.identifier, form.password);
 
       const response = await fetch(`${baseUrl}/users?${params.toString()}`);
 
@@ -65,6 +65,7 @@ export default function Page() {
         // Mock API sometimes returns plain string "Not found"
         if (text.toLowerCase() === "not found") {
           setErrors({ form: "Invalid email or password" });
+          showToast("Invalid email or password", "error");
           setStatus("error");
           return;
         }
@@ -77,6 +78,7 @@ export default function Page() {
         payload.toLowerCase() === "not found"
       ) {
         setErrors({ form: "Invalid email or password" });
+        showToast("Invalid email or password", "error");
         setStatus("error");
         return;
       }
@@ -88,18 +90,19 @@ export default function Page() {
         const user = users[0];
         localStorage.setItem("app-user", JSON.stringify(user));
         setStatus("success");
+        showToast("Signed in successfully! Redirecting...", "success");
         setTimeout(() => {
-          window.location.href = "/user";
+          router.push("/user");
         }, 1500);
       } else {
         setErrors({ form: "Invalid email or password" });
+        showToast("Invalid email or password", "error");
         setStatus("error");
       }
     } catch (err) {
-      setErrors({
-        form:
-          err instanceof Error ? err.message : "An error occurred during login",
-      });
+      const message = err instanceof Error ? err.message : "An error occurred during login";
+      setErrors({ form: message });
+      showToast(message, "error");
       setStatus("error");
     }
   };
@@ -134,8 +137,8 @@ export default function Page() {
                 borderColor: errors.identifier ? "#ef4444" : "var(--color-border)",
               }}
             />
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email}</p>
+            {errors.identifier && (
+              <p className="text-xs text-red-500">{errors.identifier}</p>
             )}
           </div>
 
