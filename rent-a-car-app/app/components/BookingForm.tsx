@@ -97,7 +97,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
     firstName: user?.name?.split(" ")[0] || "",
     lastName: user?.name?.split(" ").slice(1).join(" ") || "",
     email: user?.email || "",
-    phone: "",
+    phone: user?.phone || "",
   });
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     pickupDate: initialDates.pickupDate || "",
@@ -129,7 +129,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
       firstName: prev.firstName || userFirst,
       lastName: prev.lastName || userLast,
       email: prev.email || user.email || "",
-      phone: prev.phone,
+      phone: prev.phone || user.phone || "",
     }));
   }, [user]);
 
