@@ -70,7 +70,9 @@ export default function Page() {
       {/* Header section with user info */}
       <div className="border-b border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
         <div className="px-6 md:px-10 py-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-[var(--color-fg)]">My Profile</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--color-fg)]">
+            My Profile
+          </h1>
         </div>
       </div>
 
@@ -138,7 +140,8 @@ export default function Page() {
                   My Reservations
                 </h2>
                 <p className="text-[var(--color-fg-muted)]">
-                  {reservations.length} total reservation{reservations.length !== 1 ? "s" : ""}
+                  {reservations.length} total reservation
+                  {reservations.length !== 1 ? "s" : ""}
                 </p>
               </div>
 
@@ -148,11 +151,6 @@ export default function Page() {
                     <span className="inline-block w-2 h-2 bg-[var(--color-primary)] rounded-full animate-pulse" />
                     Loading reservations...
                   </p>
-                </div>
-              ) : error ? (
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6">
-                  <p className="text-red-400 font-medium">Error loading reservations</p>
-                  <p className="text-sm text-red-300/80 mt-1">{error}</p>
                 </div>
               ) : reservations.length === 0 ? (
                 <div className="rounded-lg border-2 border-dashed border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-12 text-center">
@@ -171,113 +169,127 @@ export default function Page() {
                   </a>
                 </div>
               ) : (
+                //   : error ? (
+                //   <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6">
+                //     <p className="text-red-400 font-medium">Error loading reservations</p>
+                //     <p className="text-sm text-red-300/80 mt-1">{error}</p>
+                //   </div>
+                // )
                 <div className="grid grid-cols-1 gap-4">
-            {reservations.map((res) => (
-              <div
-                key={res.id}
-                className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 hover:border-[var(--color-primary)] transition-colors"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Left side: Vehicle info */}
-                  <div className="space-y-3">
-                    {res.vehicle ? (
-                      <>
-                        <p className="text-lg font-bold text-[var(--color-fg)]">
-                          {res.vehicle}
-                        </p>
-                        <div className="space-y-2">
-                          {res.year && (
-                            <p className="text-sm">
-                              <span className="text-[var(--color-fg-muted)]">Year:</span>{" "}
-                              <span className="font-medium text-[var(--color-fg)]">
-                                {res.year}
-                              </span>
+                  {reservations.map((res) => (
+                    <div
+                      key={res.id}
+                      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 hover:border-[var(--color-primary)] transition-colors"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left side: Vehicle info */}
+                        <div className="space-y-3">
+                          {res.vehicle ? (
+                            <>
+                              <p className="text-lg font-bold text-[var(--color-fg)]">
+                                {res.vehicle}
+                              </p>
+                              <div className="space-y-2">
+                                {res.year && (
+                                  <p className="text-sm">
+                                    <span className="text-[var(--color-fg-muted)]">
+                                      Year:
+                                    </span>{" "}
+                                    <span className="font-medium text-[var(--color-fg)]">
+                                      {res.year}
+                                    </span>
+                                  </p>
+                                )}
+                                {res.color && (
+                                  <p className="text-sm">
+                                    <span className="text-[var(--color-fg-muted)]">
+                                      Color:
+                                    </span>{" "}
+                                    <span className="font-medium text-[var(--color-fg)] inline-block ml-2">
+                                      <span
+                                        className="inline-block w-4 h-4 rounded-full border border-[var(--color-border)] mr-2"
+                                        style={{
+                                          backgroundColor: res.color
+                                            .toLowerCase()
+                                            .replace(/\s+/g, ""),
+                                        }}
+                                      />
+                                      {res.color}
+                                    </span>
+                                  </p>
+                                )}
+                                {res.dailyRate && (
+                                  <p className="text-sm">
+                                    <span className="text-[var(--color-fg-muted)]">
+                                      Daily Rate:
+                                    </span>{" "}
+                                    <span className="font-semibold text-[var(--color-primary)]">
+                                      ${res.dailyRate}/day
+                                    </span>
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-sm text-[var(--color-fg-muted)]">
+                              Vehicle info not available
                             </p>
                           )}
-                          {res.color && (
-                            <p className="text-sm">
-                              <span className="text-[var(--color-fg-muted)]">Color:</span>{" "}
-                              <span className="font-medium text-[var(--color-fg)] inline-block ml-2">
-                                <span
-                                  className="inline-block w-4 h-4 rounded-full border border-[var(--color-border)] mr-2"
-                                  style={{
-                                    backgroundColor: res.color
-                                      .toLowerCase()
-                                      .replace(/\s+/g, ""),
-                                  }}
-                                />
-                                {res.color}
-                              </span>
-                            </p>
-                          )}
-                          {res.dailyRate && (
+                        </div>
+
+                        {/* Right side: Dates and details */}
+                        <div className="space-y-3">
+                          {(res.pickup || res.pickupDate) && (
                             <p className="text-sm">
                               <span className="text-[var(--color-fg-muted)]">
-                                Daily Rate:
+                                Pickup:
+                              </span>
+                              <br />
+                              <span className="font-medium text-[var(--color-fg)]">
+                                {new Date(
+                                  (res.pickup || res.pickupDate) as string,
+                                ).toLocaleString()}
+                              </span>
+                            </p>
+                          )}
+                          {(res.return || res.dropoffDate) && (
+                            <p className="text-sm">
+                              <span className="text-[var(--color-fg-muted)]">
+                                Return:
+                              </span>
+                              <br />
+                              <span className="font-medium text-[var(--color-fg)]">
+                                {new Date(
+                                  (res.return || res.dropoffDate) as string,
+                                ).toLocaleString()}
+                              </span>
+                            </p>
+                          )}
+                          {res.cardNumber && (
+                            <p className="text-sm">
+                              <span className="text-[var(--color-fg-muted)]">
+                                Payment Card:
                               </span>{" "}
-                              <span className="font-semibold text-[var(--color-primary)]">
-                                ${res.dailyRate}/day
+                              <span className="font-medium text-[var(--color-fg)]">
+                                ****{String(res.cardNumber).slice(-4)}
                               </span>
                             </p>
                           )}
                         </div>
-                      </>
-                    ) : (
-                      <p className="text-sm text-[var(--color-fg-muted)]">
-                        Vehicle info not available
-                      </p>
-                    )}
-                  </div>
+                      </div>
 
-                  {/* Right side: Dates and details */}
-                  <div className="space-y-3">
-                    {(res.pickup || res.pickupDate) && (
-                      <p className="text-sm">
-                        <span className="text-[var(--color-fg-muted)]">Pickup:</span>
-                        <br />
-                        <span className="font-medium text-[var(--color-fg)]">
-                          {new Date(
-                            (res.pickup || res.pickupDate) as string
-                          ).toLocaleString()}
-                        </span>
-                      </p>
-                    )}
-                    {(res.return || res.dropoffDate) && (
-                      <p className="text-sm">
-                        <span className="text-[var(--color-fg-muted)]">Return:</span>
-                        <br />
-                        <span className="font-medium text-[var(--color-fg)]">
-                          {new Date(
-                            (res.return || res.dropoffDate) as string
-                          ).toLocaleString()}
-                        </span>
-                      </p>
-                    )}
-                    {res.cardNumber && (
-                      <p className="text-sm">
-                        <span className="text-[var(--color-fg-muted)]">
-                          Payment Card:
-                        </span>{" "}
-                        <span className="font-medium text-[var(--color-fg)]">
-                          ****{String(res.cardNumber).slice(-4)}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Footer: ID and timestamp */}
-                <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-fg-muted)]">
-                  <span>Reservation ID: {res.id}</span>
-                  {res.createdAt && (
-                    <span>
-                      Created:{" "}
-                      {new Date(res.createdAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+                      {/* Footer: ID and timestamp */}
+                      <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-fg-muted)]">
+                        <span>Reservation ID: {res.id}</span>
+                        {res.createdAt && (
+                          <span>
+                            Created:{" "}
+                            {new Date(res.createdAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

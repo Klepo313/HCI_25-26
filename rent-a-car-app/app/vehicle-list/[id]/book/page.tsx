@@ -24,6 +24,7 @@ function mapCar(car: CarApi) {
     id: car.id,
     name: car.car_model,
     make: car.car_make,
+    model: car.car_model,
     description: car.car,
     color: car.car_color,
     year: car.car_model_year,
@@ -124,7 +125,7 @@ export default async function BookingPage({
             Book Your Vehicle
           </h1>
           <p className="mt-2 text-lg text-[var(--color-fg-muted)]">
-            Complete the booking process for {car.make} {car.name}
+            Complete the booking process for {car.model} {car.name}
           </p>
         </header>
 

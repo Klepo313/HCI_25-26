@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { Check, CreditCard, Calendar, User, ChevronRight } from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { useToast } from "./ToastProvider";
 import styles from "./BookingForm.module.scss";
 import searchFormStyles from "./SearchForm.module.scss";
 import { formatPrice } from "@/app/utils/formatPrice";
@@ -10,11 +13,8 @@ import { formatPrice } from "@/app/utils/formatPrice";
 const personalInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.email("Please enter a valid email address"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  address: z.string().min(5, "Please enter your address"),
-  city: z.string().min(2, "Please enter your city"),
-  zipCode: z.string().min(4, "Please enter a valid zip code"),
 });
 
 const bookingDatesSchema = z
@@ -67,6 +67,7 @@ type Car = {
   id: number;
   name: string;
   make: string;
+  model: string;
   price: number;
   year: number;
   color: string;
@@ -87,15 +88,16 @@ interface BookingFormProps {
 }
 
 export default function BookingForm({ car, initialDates }: BookingFormProps) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
-    firstName: "",
-    lastName: "",
-    email: "",
+    firstName: user?.name?.split(" ")[0] || "",
+    lastName: user?.name?.split(" ").slice(1).join(" ") || "",
+    email: user?.email || "",
     phone: "",
-    address: "",
-    city: "",
-    zipCode: "",
   });
   const [bookingDates, setBookingDates] = useState<BookingDates>({
     pickupDate: initialDates.pickupDate || "",
@@ -108,6 +110,28 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formatExpiry = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  // Keep personal info in sync with logged-in user, but allow overriding for someone else
+  useEffect(() => {
+    if (!user) return;
+
+    const userFirst = user.name?.split(" ")[0] || "";
+    const userLast = user.name?.split(" ").slice(1).join(" ") || "";
+
+    setPersonalInfo((prev) => ({
+      firstName: prev.firstName || userFirst,
+      lastName: prev.lastName || userLast,
+      email: prev.email || user.email || "",
+      phone: prev.phone,
+    }));
+  }, [user]);
 
   const calculateDays = () => {
     if (!bookingDates.pickupDate || !bookingDates.dropoffDate) return 0;
@@ -161,10 +185,65 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleConfirmBooking = () => {
-    if (validateStep(4)) {
+  const handleConfirmBooking = async () => {
+    if (!validateStep(4)) return;
+
+    if (!user) {
+      showToast("Please log in to complete your booking", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const pickupDateTime = new Date(
+        `${bookingDates.pickupDate}T${bookingDates.pickupTime}`,
+      );
+      const returnDateTime = new Date(
+        `${bookingDates.dropoffDate}T${bookingDates.dropoffTime}`,
+      );
+
+      const reservationPayload = {
+        createdAt: new Date().toISOString(),
+        vehicle: `${car.model} ${car.name}`,
+        year: car.year,
+        color: car.color,
+        dailyRate: car.price,
+        pickup: pickupDateTime.toISOString(),
+        return: returnDateTime.toISOString(),
+        cardNumber: payment.cardNumber,
+        userId: user.id,
+      };
+
+      const response = await fetch(`${baseUrl}/reservations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reservationPayload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create reservation");
+      }
+
       setBookingConfirmed(true);
       setCurrentStep(5);
+      showToast("Booking confirmed successfully!", "success");
+
+      // Redirect to user profile after 3 seconds
+      setTimeout(() => {
+        router.push("/user");
+      }, 3000);
+    } catch (error) {
+      console.error("Booking error:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to create reservation",
+        "error",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -195,7 +274,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
             <div className="flex justify-between">
               <span className="text-[var(--color-fg-muted)]">Vehicle:</span>
               <span className="font-semibold">
-                {car.make} {car.name}
+                {car.model} {car.name}
               </span>
             </div>
             <div className="flex justify-between">
@@ -267,6 +346,11 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
         {currentStep === 1 && (
           <div className={styles.stepContent}>
             <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
+            <p className="text-sm text-[var(--color-fg-muted)] mb-6">
+              {user
+                ? "Your details are pre-filled. You can edit them or enter details for another person."
+                : "Please enter your personal information."}
+            </p>
             <div className={styles.formGrid}>
               <div>
                 <label className={`${searchFormStyles.fieldLabel} mb-2`}>
@@ -401,105 +485,6 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className={`${searchFormStyles.fieldLabel} mb-2`}>
-                  Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={personalInfo.address || ""}
-                  onChange={(e) =>
-                    setPersonalInfo({
-                      ...personalInfo,
-                      address: e.target.value,
-                    })
-                  }
-                  placeholder="123 Main Street"
-                  className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
-                    errors.address ? "border-red-500" : ""
-                  }`}
-                  style={{
-                    background: "var(--color-bg-elevated)",
-                    color: personalInfo.address
-                      ? "var(--color-fg)"
-                      : "var(--color-fg-muted)",
-                    borderColor: errors.address
-                      ? "#ef4444"
-                      : "var(--color-border)",
-                    transition:
-                      "background 0.2s, color 0.2s, border-color 0.2s",
-                  }}
-                />
-                {errors.address && (
-                  <p className="text-red-500 text-xs mt-1">{errors.address}</p>
-                )}
-              </div>
-
-              <div>
-                <label className={`${searchFormStyles.fieldLabel} mb-2`}>
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={personalInfo.city || ""}
-                  onChange={(e) =>
-                    setPersonalInfo({ ...personalInfo, city: e.target.value })
-                  }
-                  placeholder="New York"
-                  className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
-                    errors.city ? "border-red-500" : ""
-                  }`}
-                  style={{
-                    background: "var(--color-bg-elevated)",
-                    color: personalInfo.city
-                      ? "var(--color-fg)"
-                      : "var(--color-fg-muted)",
-                    borderColor: errors.city
-                      ? "#ef4444"
-                      : "var(--color-border)",
-                    transition:
-                      "background 0.2s, color 0.2s, border-color 0.2s",
-                  }}
-                />
-                {errors.city && (
-                  <p className="text-red-500 text-xs mt-1">{errors.city}</p>
-                )}
-              </div>
-
-              <div>
-                <label className={`${searchFormStyles.fieldLabel} mb-2`}>
-                  Zip Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={personalInfo.zipCode || ""}
-                  onChange={(e) =>
-                    setPersonalInfo({
-                      ...personalInfo,
-                      zipCode: e.target.value,
-                    })
-                  }
-                  placeholder="10001"
-                  className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl} ${
-                    errors.zipCode ? "border-red-500" : ""
-                  }`}
-                  style={{
-                    background: "var(--color-bg-elevated)",
-                    color: personalInfo.zipCode
-                      ? "var(--color-fg)"
-                      : "var(--color-fg-muted)",
-                    borderColor: errors.zipCode
-                      ? "#ef4444"
-                      : "var(--color-border)",
-                    transition:
-                      "background 0.2s, color 0.2s, border-color 0.2s",
-                  }}
-                />
-                {errors.zipCode && (
-                  <p className="text-red-500 text-xs mt-1">{errors.zipCode}</p>
                 )}
               </div>
             </div>
@@ -689,7 +674,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                 <div className="flex justify-between">
                   <span className="text-[var(--color-fg-muted)]">Vehicle:</span>
                   <span className="font-semibold">
-                    {car.make} {car.name}
+                    {car.model} {car.name}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -729,13 +714,6 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                 <div className="flex justify-between">
                   <span className="text-[var(--color-fg-muted)]">Phone:</span>
                   <span className="font-semibold">{personalInfo.phone}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[var(--color-fg-muted)]">Address:</span>
-                  <span className="font-semibold text-right">
-                    {personalInfo.address}, {personalInfo.city}{" "}
-                    {personalInfo.zipCode}
-                  </span>
                 </div>
               </div>
             </div>
@@ -911,7 +889,10 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                       type="text"
                       value={payment.expiryDate || ""}
                       onChange={(e) =>
-                        setPayment({ ...payment, expiryDate: e.target.value })
+                        setPayment({
+                          ...payment,
+                          expiryDate: formatExpiry(e.target.value),
+                        })
                       }
                       className={`h-11 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${searchFormStyles.fieldControl}`}
                       style={{
@@ -950,6 +931,7 @@ export default function BookingForm({ car, initialDates }: BookingFormProps) {
                       }}
                       placeholder="123"
                       maxLength={4}
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
