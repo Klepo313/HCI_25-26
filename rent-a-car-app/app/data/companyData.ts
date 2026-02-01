@@ -1,7 +1,7 @@
 export const aboutData = {
   title: "About Us",
   description:
-    "DriveEase is your trusted partner for affordable and convenient car rentals across Europe. Since 2015, we've been committed to providing exceptional service and premium vehicles to thousands of satisfied customers.",
+    "RentACar is your trusted partner for affordable and convenient car rentals across Europe. Since 2015, we've been committed to providing exceptional service and premium vehicles to thousands of satisfied customers.",
   mission:
     "Our mission is to make car rental simple, affordable, and accessible to everyone. We believe that reliable transportation should never be complicated.",
   vision:
@@ -71,44 +71,44 @@ export const contactData = {
       location: "Head Office - Split, Croatia",
       address: "123 Dalmatinska Street, 21000 Split, Croatia",
       phone: "+385 21 555 0123",
-      email: "st.info@driveease.com",
+      email: "st.info@rentacar.com",
       hours: "Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 10:00 AM - 4:00 PM",
     },
     {
       location: "Additional Office - Zagreb, Croatia",
       address: "456 Ilica Street, 10000 Zagreb, Croatia",
       phone: "+385 1 2110 5555",
-      email: "zg.info@driveease.com",
+      email: "zg.info@rentacar.com",
       hours: "Monday - Friday: 8:00 AM - 5:00 PM",
     },
     {
       location: "Customer Support",
       address: "Available 24/7",
       phone: "+385 21 555 9999",
-      email: "support@driveease.com",
+      email: "support@rentacar.com",
       hours: "24/7 Emergency Support Available",
     },
   ],
   socialMedia: [
     {
       platform: "Facebook",
-      url: "https://facebook.com/driveease",
-      handle: "@driveease",
+      url: "https://facebook.com/rentacar",
+      handle: "@rentacar",
     },
     {
       platform: "Instagram",
-      url: "https://instagram.com/driveease",
-      handle: "@driveease_rental",
+      url: "https://instagram.com/rentacar",
+      handle: "@rentacar",
     },
     {
       platform: "Twitter",
-      url: "https://twitter.com/driveease",
-      handle: "@DriveEaseRental",
+      url: "https://twitter.com/rentacar",
+      handle: "@rentacar",
     },
     {
       platform: "LinkedIn",
-      url: "https://linkedin.com/company/driveease",
-      handle: "DriveEase",
+      url: "https://linkedin.com/company/rentacar",
+      handle: "@rentacar",
     },
   ],
   faq: [
