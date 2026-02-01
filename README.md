@@ -18,7 +18,7 @@
 
 ### Semester Project
 
-- Link to your production version: [**Production Version**](URL_TO_PRODUCTION_VERSION) <!-- Replace with actual URL -->
+- Link to your production version: [**Production Version**](https://rent-a-car-inky.vercel.app) <!-- Replace with actual URL -->
 - Link to your final report: [**Final Report**](URL_TO_FINAL_REPORT) <!-- Replace with actual URL -->
 <!-- Add more as necessary -->
 
@@ -29,6 +29,7 @@
 - Link to Assignment 3: [**Assignment 3**](https://rent-a-car-inky.vercel.app/) <!-- Replace with actual URL -->
 - Link to Assignment 4: [**Assignment 4**](https://github.com/Klepo313/HCI_25-26/tree/main/assignments/assignment_4)
 - Link to Assignment 5: [**Assignment 5**](https://rent-a-car-inky.vercel.app/vehicle-list)
+- Link to Assignment 6: [**Assignment 6**](https://rent-a-car-inky.vercel.app)
 <!-- Add more assignments as necessary -->
 
 ## Project Requirements
