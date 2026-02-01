@@ -19,7 +19,7 @@
 ### Semester Project
 
 - Link to your production version: [**Production Version**](https://rent-a-car-inky.vercel.app) <!-- Replace with actual URL -->
-- Link to your final report: [**Final Report**](URL_TO_FINAL_REPORT) <!-- Replace with actual URL -->
+- Link to your final report: [**Final Report**](https://github.com/Klepo313/HCI_25-26/blob/main/Antonio_Klepo_Project-report.docx) <!-- Replace with actual URL -->
 <!-- Add more as necessary -->
 
 ### Semester Assignments
