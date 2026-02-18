@@ -1,7 +1,9 @@
 "use client";
 
 import { useAuth } from "../components/AuthProvider";
+import { useToast } from "../components/ToastProvider";
 import { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 
 type Reservation = {
   id: string | number;
@@ -37,9 +39,52 @@ function calculateTotalCost(
 
 export default function Page() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingReservationId, setDeletingReservationId] = useState<
+    string | number | null
+  >(null);
+  const [reservationToDelete, setReservationToDelete] =
+    useState<Reservation | null>(null);
+
+  const handleDeleteReservation = async (reservationId: string | number) => {
+    setDeletingReservationId(reservationId);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+      const response = await fetch(`${baseUrl}/reservations/${reservationId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete reservation");
+      }
+
+      setReservations((prev) =>
+        prev.filter((reservation) => reservation.id !== reservationId),
+      );
+      showToast("Reservation deleted successfully.", "success");
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Failed to delete reservation",
+        "error",
+      );
+    } finally {
+      setDeletingReservationId(null);
+    }
+  };
+
+  const openDeleteConfirmation = (reservation: Reservation) => {
+    setReservationToDelete(reservation);
+  };
+
+  const confirmDeleteReservation = async () => {
+    if (!reservationToDelete) return;
+    await handleDeleteReservation(reservationToDelete.id);
+    setReservationToDelete(null);
+  };
 
   useEffect(() => {
     if (!user?.id) return;
@@ -52,6 +97,10 @@ export default function Page() {
         const response = await fetch(
           `${baseUrl}/reservations?userId=${user.id}`,
         );
+        if (response.status === 204 || response.status === 404) {
+          setReservations([]);
+          return;
+        }
         if (!response.ok) throw new Error("Failed to fetch reservations");
         const data = await response.json();
 
@@ -173,6 +222,13 @@ export default function Page() {
                     Loading reservations...
                   </p>
                 </div>
+              ) : error ? (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6">
+                  <p className="text-red-400 font-medium">
+                    Error loading reservations
+                  </p>
+                  <p className="text-sm text-red-300/80 mt-1">{error}</p>
+                </div>
               ) : reservations.length === 0 ? (
                 <div className="rounded-lg border-2 border-dashed border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-12 text-center">
                   <div className="text-5xl mb-4">📅</div>
@@ -190,18 +246,23 @@ export default function Page() {
                   </a>
                 </div>
               ) : (
-                //   : error ? (
-                //   <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6">
-                //     <p className="text-red-400 font-medium">Error loading reservations</p>
-                //     <p className="text-sm text-red-300/80 mt-1">{error}</p>
-                //   </div>
-                // )
                 <div className="grid grid-cols-1 gap-4">
                   {reservations.map((res) => (
                     <div
                       key={res.id}
-                      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 hover:border-[var(--color-primary)] transition-colors"
+                      className="relative rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5 hover:border-[var(--color-primary)] transition-colors"
                     >
+                      <button
+                        type="button"
+                        onClick={() => openDeleteConfirmation(res)}
+                        disabled={deletingReservationId === res.id}
+                        className="absolute top-3 right-3 p-2 rounded-md border border-red-500/40 text-red-500 hover:bg-red-500/10 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        aria-label="Delete reservation"
+                        title="Delete reservation"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Left side: Vehicle info */}
                         <div className="space-y-3">
@@ -310,25 +371,62 @@ export default function Page() {
                             </span>
                           )}
                         </div>
-                        {res.dailyRate && (res.pickup || res.pickupDate) && (res.return || res.dropoffDate) && (
-                          <div className="text-right">
-                            <p className="text-xs text-[var(--color-fg-muted)] mb-1">
-                              Total Cost
-                            </p>
-                            <p className="text-lg font-bold text-[var(--color-primary)]">
-                              ${calculateTotalCost(
-                                res.dailyRate,
-                                res.pickup || res.pickupDate,
-                                res.return || res.dropoffDate,
-                              ).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-4 pr-12">
+                          {res.dailyRate &&
+                            (res.pickup || res.pickupDate) &&
+                            (res.return || res.dropoffDate) && (
+                              <div className="text-right">
+                                <p className="text-xs text-[var(--color-fg-muted)] mb-1">
+                                  Total Cost
+                                </p>
+                                <p className="text-lg font-bold text-[var(--color-primary)]">
+                                  ${calculateTotalCost(
+                                    res.dailyRate,
+                                    res.pickup || res.pickupDate,
+                                    res.return || res.dropoffDate,
+                                  ).toFixed(2)}
+                                </p>
+                              </div>
+                            )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {reservationToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-md rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-6 shadow-xl">
+              <h3 className="text-xl font-bold text-[var(--color-fg)]">
+                Delete reservation?
+              </h3>
+              <p className="mt-3 text-sm text-[var(--color-fg-muted)]">
+                This action cannot be undone. Do you want to permanently remove
+                this reservation?
+              </p>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setReservationToDelete(null)}
+                  disabled={deletingReservationId !== null}
+                  className="px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-fg)] font-medium hover:bg-[var(--color-bg)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteReservation}
+                  disabled={deletingReservationId !== null}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {deletingReservationId !== null ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </div>
           </div>
         )}
